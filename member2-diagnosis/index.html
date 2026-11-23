@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fault Diagnosis Engine - SE 331 (Member 2)</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Header Section -->
+    <header>
+      <div class="brand-section">
+        <h1>⚙️ Appliance Fault Diagnosis Engine</h1>
+        <p>SE 331 Live Coding Assessment • Appliance Fault Diagnosis & Repair Cost Estimator</p>
+      </div>
+      <div class="badge-group">
+        <span class="badge badge-branch">Branch: Nahid</span>
+        <span class="badge badge-module">Member 2: Diagnosis Engine</span>
+      </div>
+    </header>
+
+    <!-- Main 2-Column Dashboard Grid -->
+    <main class="main-grid">
+      <!-- Left Column: Intake & Diagnosis Input -->
+      <section class="left-col">
+        <!-- Mock Complaints Quick Bar (Simulating Member 1 Input) -->
+        <div class="card">
+          <div class="card-title">
+            <span>📥 Customer Intake (Mock Data)</span>
+            <small style="font-size:0.75rem; color:var(--gray-500); font-weight:normal;">From Member 1</small>
+          </div>
+          
+          <div class="quick-select-box">
+            <div class="select-wrapper">
+              <select id="mockComplaintSelect">
+                <option value="">-- Select a Customer Complaint from mock.js --</option>
+              </select>
+            </div>
+            
+            <div class="quick-pills-label">Core Assessment Test Cases:</div>
+            <div class="quick-pills">
+              <button type="button" class="quick-pill-btn" data-id="CMP-REF-001">❄️ Noise + Food Not Cold</button>
+              <button type="button" class="quick-pill-btn" data-id="CMP-WM-002">🌀 Water Leak at Bottom</button>
+              <button type="button" class="quick-pill-btn" data-id="CMP-MIC-003">⚡ Was Working, Now Nothing</button>
+              <button type="button" class="quick-pill-btn danger-pill" data-id="CMP-WM-004">🔥 Burning Smell Hazard</button>
+              <button type="button" class="quick-pill-btn danger-pill" data-id="CMP-MIC-005">⚡ Sparks in Cavity</button>
+              <button type="button" class="quick-pill-btn" data-id="CMP-VAG-007">❓ Vague / Fallback Test</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Diagnostic Input Form -->
+        <div class="card">
+          <div class="card-title">
+            <span>🛠️ Fault Diagnostic Input</span>
+          </div>
+
+          <form id="diagnosisForm">
+            <!-- 1. Appliance Selection -->
+            <div class="form-group">
+              <label class="form-label">1. Select Appliance Type</label>
+              <div class="appliance-selector-group">
+                <label class="appliance-option">
+                  <input type="radio" name="appliance" value="Refrigerator" checked>
+                  <div class="appliance-card">
+                    <span class="icon">❄️</span>
+                    <span class="name">Refrigerator</span>
+                  </div>
+                </label>
+                <label class="appliance-option">
+                  <input type="radio" name="appliance" value="Washing Machine">
+                  <div class="appliance-card">
+                    <span class="icon">🌀</span>
+                    <span class="name">Washing Machine</span>
+                  </div>
+                </label>
+                <label class="appliance-option">
+                  <input type="radio" name="appliance" value="Microwave">
+                  <div class="appliance-card">
+                    <span class="icon">⚡</span>
+                    <span class="name">Microwave</span>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <!-- 2. Symptom Checklist (Dynamically populated) -->
+            <div class="form-group">
+              <label class="form-label">2. Select Observed Symptoms</label>
+              <div class="symptoms-grid" id="symptomsList">
+                <!-- Dynamically loaded based on chosen appliance -->
+              </div>
+            </div>
+
+            <!-- 3. Free-text Description -->
+            <div class="form-group">
+              <label class="form-label" for="complaintDescription">3. Customer Free-Text Description</label>
+              <textarea id="complaintDescription" class="form-textarea" placeholder="E.g., Making a rattling noise and food inside is not cold at all..."></textarea>
+            </div>
+
+            <!-- Actions -->
+            <div class="button-row">
+              <button type="submit" class="btn btn-primary" id="btnDiagnose">
+                <span>🔍 Diagnose Fault</span>
+              </button>
+              <button type="button" class="btn btn-secondary" id="btnReset">
+                <span>Reset</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <!-- Right Column: Results & History -->
+      <section class="right-col">
+        <!-- Safety Alert Banner (Hidden by default, shown when isDangerous is true) -->
+        <div id="dangerBanner" class="danger-banner" style="display: none;">
+          <div class="danger-icon">⚠️</div>
+          <div>
+            <div class="danger-title">DO NOT OPERATE / UNPLUG IMMEDIATELY!</div>
+            <div id="dangerMessage" class="danger-message"></div>
+          </div>
+        </div>
+
+        <!-- Diagnosis Result Card -->
+        <div class="card" id="resultCard">
+          <div class="card-title">
+            <span>📋 Fault Diagnosis Result</span>
+            <span id="applianceTag" class="badge badge-branch">Ready</span>
+          </div>
+
+          <div class="result-header">
+            <div class="fault-title-row">
+              <div class="fault-name" id="resFaultName">Awaiting Diagnosis...</div>
+              <div class="fault-id-tag" id="resFaultId">FLT-READY</div>
+            </div>
+
+            <!-- Confidence Bar -->
+            <div class="confidence-box">
+              <div class="confidence-label-row">
+                <span>Diagnostic Confidence</span>
+                <span id="resConfidenceLabel">0%</span>
+              </div>
+              <div class="confidence-bar-bg">
+                <div id="resConfidenceBar" class="confidence-bar-fill" style="width: 0%;"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Possible Causes -->
+          <div class="section-subtitle">Probable Causes</div>
+          <ul class="causes-list" id="resCausesList">
+            <li>Select an assessment complaint or enter symptoms to view probable causes.</li>
+          </ul>
+
+          <!-- Recommendation -->
+          <div class="section-subtitle">Recommended Action</div>
+          <div class="recommendation-box">
+            <div class="rec-icon">🔧</div>
+            <div class="rec-text" id="resRecommendation">
+              Run diagnosis to generate physical inspection steps and technician testing guidelines.
+            </div>
+          </div>
+        </div>
+
+        <!-- JSON Output for Member 3 (Cost Estimator) -->
+        <div class="card">
+          <div class="card-title">
+            <span>📦 JSON Output (For Member 3: Cost Estimator)</span>
+            <button type="button" class="btn btn-secondary btn-sm" id="btnCopyJson">📋 Copy JSON</button>
+          </div>
+          <div class="json-container">
+            <div class="json-header">
+              <span>Standard Contract Data Payload</span>
+              <span id="copyStatusText">Click Copy to clipboard</span>
+            </div>
+            <pre class="json-code" id="jsonOutput">// Diagnosis JSON payload will appear here...</pre>
+          </div>
+        </div>
+
+        <!-- Recent Diagnosis History (LocalStorage) -->
+        <div class="card">
+          <div class="card-title">
+            <span>🕒 Recent Diagnosis History (localStorage)</span>
+            <button type="button" class="btn btn-secondary btn-sm" id="btnClearHistory">Clear</button>
+          </div>
+          <div class="history-list" id="historyList">
+            <!-- Dynamically populated from localStorage -->
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Script Imports: mock.js -> diagnosisEngine.js -> app.js -->
+  <script src="mock.js"></script>
+  <script src="diagnosisEngine.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
