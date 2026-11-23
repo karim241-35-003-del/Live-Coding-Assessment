@@ -13,6 +13,7 @@ import {
   Info
 } from 'lucide-react';
 import { useData } from '../context/DataContext';
+import DiagnosisEngine from '../../member2/diagnosisEngine.js';
 
 export default function DiagnosisPage() {
   const { complaints } = useData();
@@ -52,6 +53,37 @@ export default function DiagnosisPage() {
     ]
   };
 
+  const executeDiagnosis = (appType, syms, desc, compId) => {
+    // Map symptom aliases to ensure full compatibility with DiagnosisEngine
+    const mappedSyms = (syms || []).map((s) => {
+      if (s === 'sparks') return 'sparks_arcing';
+      if (s === 'vibration') return 'excessive_vibration';
+      if (s === 'no_turntable') return 'turntable_stuck';
+      return s;
+    });
+
+    const rawResult = DiagnosisEngine.diagnoseFault({
+      appliance: appType,
+      applianceType: appType,
+      symptoms: mappedSyms,
+      description: desc,
+      complaintId: compId
+    });
+
+    setDiagnosisResult({
+      faultId: rawResult.faultId,
+      appliance: rawResult.appliance,
+      likelyFault: rawResult.likelyFault,
+      possibleCauses: rawResult.possibleCauses || [],
+      confidenceScore: rawResult.confidenceScore || 85,
+      confidence: rawResult.confidence || `${rawResult.confidenceScore || 85}% (High)`,
+      confidenceLevel: rawResult.confidenceLevel || 'High',
+      isDangerous: Boolean(rawResult.isDangerous),
+      safetyWarning: rawResult.safetyWarning,
+      recommendation: rawResult.recommendation
+    });
+  };
+
   const handleComplaintSelect = (complaintId) => {
     setSelectedComplaintId(complaintId);
     if (!complaintId) return;
@@ -60,16 +92,30 @@ export default function DiagnosisPage() {
     if (comp) {
       setApplianceType(comp.applianceType);
       setDescription(comp.description);
-      // Auto-assign symptoms
-      const desc = comp.description.toLowerCase();
+
+      // Auto-assign symptoms based on complaint text
+      const desc = (comp.description || '').toLowerCase();
+      const issueCat = (comp.issueCategory || '').toLowerCase();
+      const combined = `${issueCat} ${desc}`;
+
       const syms = [];
-      if (desc.includes('cool') || desc.includes('warm')) syms.push('not_cooling');
-      if (desc.includes('noise') || desc.includes('clicking')) syms.push('strange_noise');
-      if (desc.includes('leak') || desc.includes('overflow')) syms.push('water_leak');
-      if (desc.includes('spark') || desc.includes('fire')) syms.push('sparks');
-      if (desc.includes('spin') || desc.includes('drum')) syms.push('no_spin');
-      if (desc.includes('heat') || desc.includes('warm')) syms.push('no_heat');
-      setSelectedSymptoms(syms.length ? syms : ['not_cooling']);
+      if (combined.includes('cool') || combined.includes('warm') || combined.includes('not cold')) syms.push('not_cooling');
+      if (combined.includes('noise') || combined.includes('clicking') || combined.includes('rattling')) syms.push('strange_noise');
+      if (combined.includes('leak') || combined.includes('overflow') || combined.includes('water')) syms.push('water_leak');
+      if (combined.includes('spark') || combined.includes('arcing')) syms.push('sparks');
+      if (combined.includes('burn') || combined.includes('smoke') || combined.includes('odor')) syms.push('burning_smell');
+      if (combined.includes('spin') || combined.includes('drum')) syms.push('no_spin');
+      if (combined.includes('drain') || combined.includes('pump')) syms.push('no_drain');
+      if (combined.includes('vibrat') || combined.includes('shaking')) syms.push('vibration');
+      if (combined.includes('heat') || combined.includes('cold food')) syms.push('no_heat');
+      if (combined.includes('turntable') || combined.includes('tray')) syms.push('no_turntable');
+      if (combined.includes('dead') || combined.includes('power') || combined.includes('display')) syms.push('dead_display');
+
+      const finalSyms = syms.length ? syms : ['not_cooling'];
+      setSelectedSymptoms(finalSyms);
+
+      // Auto-run diagnosis for instant feedback on selection
+      executeDiagnosis(comp.applianceType, finalSyms, comp.description, complaintId);
     }
   };
 
@@ -82,92 +128,10 @@ export default function DiagnosisPage() {
   };
 
   const runDiagnosis = (e) => {
-    e.preventDefault();
-    const text = description.toLowerCase();
-
-    // Priority 1: Safety Hazard check
-    const isDangerous =
-      selectedSymptoms.includes('sparks') ||
-      selectedSymptoms.includes('burning_smell') ||
-      text.includes('spark') ||
-      text.includes('smoke') ||
-      text.includes('shock') ||
-      text.includes('fire');
-
-    let likelyFault = '';
-    let recommendation = '';
-    let confidenceScore = 90;
-
-    if (applianceType === 'Refrigerator') {
-      if (isDangerous) {
-        likelyFault = 'Compressor PTC Starter Relay Arcing / Short Circuit';
-        recommendation =
-          'CRITICAL SAFETY HAZARD: Unplug refrigerator immediately. Do not power until relay and compressor terminals are ohm-tested.';
-        confidenceScore = 95;
-      } else if (selectedSymptoms.includes('not_cooling')) {
-        likelyFault = 'Evaporator Fan Motor Failure or Capillary Tube Blockage';
-        recommendation =
-          'Check evaporator fan RPM, test defrost sensor, and check refrigerant system operating pressure.';
-        confidenceScore = 88;
-      } else if (selectedSymptoms.includes('water_leak')) {
-        likelyFault = 'Defrost Drain Tube Clogged with Ice or Algae';
-        recommendation = 'Flush drain hole with hot water and inspect drain pan heater.';
-        confidenceScore = 92;
-      } else {
-        likelyFault = 'Thermostat Sensor / Control Board Calibration Fault';
-        recommendation = 'Test temperature NTC thermistor resistance against factory table.';
-        confidenceScore = 85;
-      }
-    } else if (applianceType === 'Washing Machine') {
-      if (isDangerous) {
-        likelyFault = 'Motor Drive Stator Short / Main PCB Inverter Overheating';
-        recommendation = 'Unplug machine. Test motor windings for ground continuity.';
-        confidenceScore = 96;
-      } else if (selectedSymptoms.includes('no_drain') || selectedSymptoms.includes('water_leak')) {
-        likelyFault = 'Clogged Drain Pump Filter / Ruptured Bellows Intake Gasket';
-        recommendation =
-          'Clear foreign objects from coin trap and test 230V drain pump coil resistance.';
-        confidenceScore = 93;
-      } else if (selectedSymptoms.includes('no_spin') || selectedSymptoms.includes('vibration')) {
-        likelyFault = 'Worn Spider Arm Bearings or Broken Suspension Damper Rods';
-        recommendation = 'Inspect rear bearing seal for rust bleed; check shock absorber resistance.';
-        confidenceScore = 91;
-      } else {
-        likelyFault = 'Door Interlock Switch or Hall Speed Sensor Failure';
-        recommendation = 'Check door latch contact continuity and rotor tachometer pulse.';
-        confidenceScore = 86;
-      }
-    } else {
-      // Microwave Oven
-      if (isDangerous || selectedSymptoms.includes('sparks')) {
-        likelyFault = 'High-Voltage Waveguide Arcing / Burnt Mica Cover';
-        recommendation =
-          'CRITICAL HAZARD: Do not operate. Replace waveguide mica sheet and check magnetron antenna dome.';
-        confidenceScore = 97;
-      } else if (selectedSymptoms.includes('no_heat')) {
-        likelyFault = 'High-Voltage Diode / Capacitor or Magnetron Open Circuit';
-        recommendation =
-          'Discharge high-voltage capacitor safely before service. Measure HV diode forward drop.';
-        confidenceScore = 90;
-      } else {
-        likelyFault = 'Turntable Synchronous Drive Motor Failure';
-        recommendation = 'Test turntable motor coil with multimeter (approx 2.5kΩ to 3.5kΩ).';
-        confidenceScore = 89;
-      }
+    if (e && e.preventDefault) {
+      e.preventDefault();
     }
-
-    setDiagnosisResult({
-      faultId: `FLT-${applianceType.slice(0, 3).toUpperCase()}-001`,
-      appliance: applianceType,
-      likelyFault,
-      confidenceScore,
-      confidence: `${confidenceScore}% (High)`,
-      isDangerous,
-      safetyWarning: isDangerous
-        ? 'CRITICAL SAFETY HAZARD: Disconnect power immediately. High risk of electrical fire or shock.'
-        : null,
-      recommendation
-    });
+    executeDiagnosis(applianceType, selectedSymptoms, description, selectedComplaintId);
   };
 
   const handleProceedToCost = () => {
@@ -247,10 +211,10 @@ export default function DiagnosisPage() {
               </div>
             </div>
 
-            {/* Common Symptoms Checkboxes */}
+            {/* Observed Symptoms Checkboxes with Clean Grid Layout */}
             <div className="form-group mb-4">
               <label className="form-label">Observed Symptoms (Check all that apply):</label>
-              <div className="grid grid-cols-2 gap-2 mt-1">
+              <div className="symptoms-checkbox-grid">
                 {activeOptions.map((opt) => (
                   <label
                     key={opt.id}
@@ -306,38 +270,73 @@ export default function DiagnosisPage() {
             </div>
           ) : (
             <div className="diagnosis-output-box">
+              {/* 4. Danger Alert Banner */}
               {diagnosisResult.isDangerous && (
-                <div className="alert-box alert-danger mb-4">
-                  <Flame size={20} className="flex-shrink-0 text-danger" />
+                <div className="alert-box alert-danger mb-4 p-4 rounded-lg bg-red-50 border-2 border-red-500 flex items-start gap-3 shadow-sm">
+                  <Flame size={24} className="flex-shrink-0 text-red-600 mt-0.5" />
                   <div>
-                    <strong>CRITICAL SAFETY HAZARD DETECTED</strong>
-                    <p className="text-xs mt-1">{diagnosisResult.safetyWarning}</p>
+                    <strong className="text-red-700 font-extrabold text-sm tracking-wide block uppercase">
+                      CRITICAL SAFETY HAZARD: DO NOT OPERATE / UNPLUG IMMEDIATELY!
+                    </strong>
+                    <p className="text-xs text-red-800 font-semibold mt-1 leading-relaxed">
+                      {diagnosisResult.safetyWarning || 'Dangerous condition detected. Unplug the appliance immediately to avoid risk of electrical fire or shock.'}
+                    </p>
                   </div>
                 </div>
               )}
 
+              {/* 1. Identified Likely Fault & Fault ID Badge */}
               <div className="output-section">
-                <span className="text-xs font-bold text-muted uppercase">Identified Likely Fault:</span>
+                <span className="text-xs font-bold text-muted uppercase tracking-wider">Identified Likely Fault:</span>
                 <h4 className="text-lg font-bold text-slate-900 mt-1">
                   {diagnosisResult.likelyFault}
                 </h4>
+                <div className="mt-2 flex items-center gap-2 flex-wrap">
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-mono font-bold bg-slate-100 text-slate-800 border border-slate-300">
+                    {diagnosisResult.faultId}
+                  </span>
+                  <span className="text-xs text-slate-500 font-medium">
+                    {diagnosisResult.appliance} Diagnostic Code
+                  </span>
+                </div>
               </div>
 
+              {/* 2. Probable Causes Section */}
               <div className="output-section mt-4">
-                <span className="text-xs font-bold text-muted uppercase">Bench Recommendation:</span>
-                <p className="text-sm text-slate-700 bg-slate-50 p-3 rounded-md border border-slate-200 mt-1">
-                  {diagnosisResult.recommendation}
-                </p>
+                <span className="text-xs font-bold text-muted uppercase tracking-wider">Probable Causes:</span>
+                <ul className="mt-2 space-y-1.5 list-disc list-inside text-sm text-slate-700 bg-slate-50 p-3.5 rounded-md border border-slate-200">
+                  {diagnosisResult.possibleCauses && diagnosisResult.possibleCauses.length > 0 ? (
+                    diagnosisResult.possibleCauses.map((cause, idx) => (
+                      <li key={idx} className="leading-relaxed pl-1 text-slate-700">
+                        {cause}
+                      </li>
+                    ))
+                  ) : (
+                    <li className="text-slate-500 italic">No specific causes identified for this symptom pattern.</li>
+                  )}
+                </ul>
               </div>
 
+              {/* 3. Recommended Action & Inspection Guidelines Box */}
+              <div className="output-section mt-4">
+                <span className="text-xs font-bold text-muted uppercase tracking-wider">Recommended Action &amp; Inspection Guidelines:</span>
+                <div className="mt-2 bg-teal-50 border border-teal-200 p-3.5 rounded-md flex items-start gap-3">
+                  <Wrench size={18} className="text-teal-700 flex-shrink-0 mt-0.5" />
+                  <div className="text-sm text-teal-900 leading-relaxed font-medium">
+                    {diagnosisResult.recommendation}
+                  </div>
+                </div>
+              </div>
+
+              {/* Confidence Score Progress Bar */}
               <div className="output-section mt-4 pt-4 border-t border-slate-200">
                 <div className="flex items-center justify-between text-xs text-muted mb-2">
-                  <span>Confidence Score:</span>
-                  <strong className="text-slate-800">{diagnosisResult.confidenceScore}%</strong>
+                  <span>Diagnostic Confidence:</span>
+                  <strong className="text-slate-800">{diagnosisResult.confidence}</strong>
                 </div>
                 <div className="progress-stacked">
                   <div
-                    className="progress-bar bar-cyan"
+                    className={`progress-bar ${diagnosisResult.confidenceLevel === 'High' ? 'bar-cyan' : 'bar-amber'}`}
                     style={{ width: `${diagnosisResult.confidenceScore}%` }}
                   >
                     {diagnosisResult.confidenceScore}%
@@ -345,6 +344,7 @@ export default function DiagnosisPage() {
                 </div>
               </div>
 
+              {/* 6. Proceed to Cost Guardrail (Module 3) */}
               <div className="mt-6 pt-4 border-t border-slate-200">
                 <button
                   type="button"
