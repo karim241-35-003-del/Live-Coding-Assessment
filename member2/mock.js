@@ -3,135 +3,149 @@
  * Member 2: Fault Diagnosis Engine
  * File: mock.js
  * 
- * Acts as the mock database containing sample structured customer complaints
- * (simulating input from Member 1: Customer Intake) and provides localStorage
- * persistence for diagnosis records.
+ * Simulates incoming customer complaints from Member 1 (Customer Intake)
+ * aligned with the Jamal's Appliance Care data schema (Alif's branch).
+ * Provides localStorage persistence for Member 2 diagnosis history.
  */
 
 const MockDatabase = (function() {
   const STORAGE_KEY = "se331_fault_diagnosis_history";
 
-  // Pre-configured customer complaints representing real-world diagnostic scenarios
-  const SAMPLE_COMPLAINTS = [
+  // Customer complaints aligned with Member 1 (Alif) and assessment test scenarios
+  const INCOMING_COMPLAINTS = [
     {
-      id: "CMP-REF-001",
-      title: "Making noise + food is not cold",
-      appliance: "Refrigerator",
-      symptoms: ["strange_noise", "not_cooling"],
-      description: "It has been making a loud rattling and clicking noise since yesterday, and the food inside the fridge compartment is not cold at all.",
-      customerName: "Rahim Chowdhury",
-      reportedAt: "2026-11-20T09:30:00Z"
-    },
-    {
-      id: "CMP-WM-002",
-      title: "Water coming from the bottom",
-      appliance: "Washing Machine",
-      symptoms: ["water_leak", "puddle_underneath"],
-      description: "Every time the spin cycle runs, there is water coming from the bottom of the washing machine, flooding the laundry floor.",
-      customerName: "Nusrat Jahan",
-      reportedAt: "2026-11-21T14:15:00Z"
-    },
-    {
-      id: "CMP-MIC-003",
-      title: "Was working yesterday, now nothing",
-      appliance: "Microwave",
-      symptoms: ["no_power", "dead_display"],
-      description: "The microwave was working yesterday, now nothing turns on when plugged in. Digital display is completely blank and dark.",
+      id: "JAC-2026-001",
+      customerId: "CUST-101",
       customerName: "Tanvir Ahmed",
-      reportedAt: "2026-11-22T11:00:00Z"
+      customerPhone: "01711223344",
+      customerAddress: "House 24, Road 7, Sector 4, Uttara, Dhaka",
+      applianceType: "Refrigerator",
+      brand: "Walton",
+      modelNumber: "WFD-1B6 (Direct Cool)",
+      issueCategory: "Noise & Not Cooling",
+      priority: "High",
+      serviceType: "Home Visit",
+      status: "Under Inspection",
+      registeredDate: "2026-11-20 09:30 AM",
+      symptoms: ["strange_noise", "not_cooling"],
+      description: "Freezer compartment works slightly but lower food chamber is not cold at all. Making a loud rattling and clicking noise continuously since yesterday."
     },
     {
-      id: "CMP-WM-004",
-      title: "Smells like something burning",
-      appliance: "Washing Machine",
+      id: "JAC-2026-002",
+      customerId: "CUST-102",
+      customerName: "Nusrat Jahan",
+      customerPhone: "01822334455",
+      customerAddress: "Flat 4B, Green Heritage, Dhanmondi 27, Dhaka",
+      applianceType: "Washing Machine",
+      brand: "Samsung",
+      modelNumber: "EcoBubble 7kg Front-Load",
+      issueCategory: "Water Leakage",
+      priority: "Medium",
+      serviceType: "Home Visit",
+      status: "Pending",
+      registeredDate: "2026-11-21 11:15 AM",
+      symptoms: ["water_leak", "puddle_underneath"],
+      description: "Every time the spin and drain cycle runs, there is water coming from the bottom of the washing machine flooding the laundry floor."
+    },
+    {
+      id: "JAC-2026-003",
+      customerId: "CUST-103",
+      customerName: "Mohammad Rahim",
+      customerPhone: "01933445566",
+      customerAddress: "Block D, Road 3, Mirpur 12, Dhaka",
+      applianceType: "Microwave Oven",
+      brand: "Singer",
+      modelNumber: "SMW20VM Solo 20L",
+      issueCategory: "Sparking & Burning Odor",
+      priority: "Urgent",
+      serviceType: "Shop Drop-off",
+      status: "Pending",
+      registeredDate: "2026-11-22 02:20 PM",
+      symptoms: ["sparks_arcing", "burning_smell"],
+      description: "Sparks flying inside the cooking chamber near the mica cover plate with a burning plastic smell when heating starts."
+    },
+    {
+      id: "JAC-2026-004",
+      customerId: "CUST-104",
+      customerName: "Farhana Islam",
+      customerPhone: "01644556677",
+      customerAddress: "Plot 12, Avenue 5, Banani, Dhaka",
+      applianceType: "Refrigerator",
+      brand: "LG",
+      modelNumber: "Smart Inverter 260L No-Frost",
+      issueCategory: "Power Failure / Dead",
+      priority: "Urgent",
+      serviceType: "Home Visit",
+      status: "Pending",
+      registeredDate: "2026-11-22 04:00 PM",
+      symptoms: ["no_power", "dead_display"],
+      description: "The refrigerator was working yesterday, now nothing turns on. Completely unresponsive with no interior light after thunderstorm power surge."
+    },
+    {
+      id: "JAC-2026-005",
+      customerId: "CUST-105",
+      customerName: "Kamrul Hasan",
+      customerPhone: "01555667788",
+      customerAddress: "Ka-65/2, Shahjadpur, Gulshan-2, Dhaka",
+      applianceType: "Microwave Oven",
+      brand: "Haier",
+      modelNumber: "HMW-20M1 Grill 20L",
+      issueCategory: "Turntable Not Rotating",
+      priority: "Low",
+      serviceType: "Shop Drop-off",
+      status: "Pending",
+      registeredDate: "2026-11-23 10:45 AM",
+      symptoms: ["turntable_stuck"],
+      description: "Heats food properly but the glass roller tray does not spin, leaving food heated unevenly."
+    },
+    {
+      id: "JAC-2026-006",
+      customerId: "CUST-106",
+      customerName: "Farzana Yasmin",
+      customerPhone: "01788990011",
+      customerAddress: "Road 10, Sector 11, Uttara, Dhaka",
+      applianceType: "Washing Machine",
+      brand: "Whirlpool",
+      modelNumber: "FreshCare 8kg Front-Load",
+      issueCategory: "Burning Smell & Smoke",
+      priority: "Urgent",
+      serviceType: "Home Visit",
+      status: "Pending",
+      registeredDate: "2026-11-23 11:30 AM",
       symptoms: ["burning_smell", "smoke_detected"],
-      description: "Midway through the cycle, it smells like something burning and hot plastic smoke is coming from behind the unit.",
-      customerName: "Farhana Akter",
-      reportedAt: "2026-11-22T16:45:00Z"
+      description: "Midway through the wash cycle, it smells like something burning and hot smoke came from the rear motor cabinet."
     },
     {
-      id: "CMP-MIC-005",
-      title: "Sparks inside cooking chamber",
-      appliance: "Microwave",
-      symptoms: ["sparks_arcing", "strange_noise"],
-      description: "Loud buzzing noise and violent electrical sparks flashing along the internal right wall whenever heating starts.",
-      customerName: "Kamrul Islam",
-      reportedAt: "2026-11-23T08:20:00Z"
-    },
-    {
-      id: "CMP-REF-006",
-      title: "Heavy frost buildup in freezer",
-      appliance: "Refrigerator",
-      symptoms: ["frost_buildup", "not_cooling"],
-      description: "Thick ice and frost building up over the freezer coils, while the lower refrigerator section stays warm.",
-      customerName: "Sadia Sultana",
-      reportedAt: "2026-11-23T09:05:00Z"
-    },
-    {
-      id: "CMP-VAG-007",
-      title: "Vague Complaint / Insufficient Data",
-      appliance: "Washing Machine",
+      id: "JAC-2026-007",
+      customerId: "CUST-107",
+      customerName: "Anonymous Customer",
+      customerPhone: "01700000000",
+      customerAddress: "Dhaka",
+      applianceType: "Washing Machine",
+      brand: "General",
+      modelNumber: "Standard Washer",
+      issueCategory: "Unspecified Error",
+      priority: "Low",
+      serviceType: "Shop Drop-off",
+      status: "Pending",
+      registeredDate: "2026-11-23 12:00 PM",
       symptoms: [],
-      description: "The machine doesn't feel right today. Please check.",
-      customerName: "Anonymous User",
-      reportedAt: "2026-11-23T10:00:00Z"
+      description: "Something doesn't feel right today. Please check."
     }
   ];
 
-  // Available symptom definitions categorized by appliance
-  const SYMPTOM_CATALOG = {
-    common: [
-      { id: "no_power", label: "No Power / Completely Dead" },
-      { id: "strange_noise", label: "Abnormal Noise (Rattling / Grinding)" },
-      { id: "burning_smell", label: "Burning Smell (Plastic / Electrical)" },
-      { id: "smoke_detected", label: "Visible Smoke / Fumes" },
-      { id: "sparks_arcing", label: "Sparks or Electrical Arcing" },
-      { id: "electric_shock", label: "Tingling / Electric Shock on Touch" }
-    ],
-    Refrigerator: [
-      { id: "not_cooling", label: "Food Not Cold / Compartment Warm" },
-      { id: "frost_buildup", label: "Excessive Frost / Ice Buildup" },
-      { id: "water_leak", label: "Water Leaking From Bottom / Drain Pan" },
-      { id: "clicking_sound", label: "Clicking Sound Near Compressor" },
-      { id: "constant_running", label: "Motor Runs Constantly Without Cycling" }
-    ],
-    "Washing Machine": [
-      { id: "water_leak", label: "Water Leaking from Bottom" },
-      { id: "puddle_underneath", label: "Puddle Forming Underneath Unit" },
-      { id: "no_drain", label: "Will Not Drain Water" },
-      { id: "no_spin", label: "Drum Will Not Spin" },
-      { id: "excessive_vibration", label: "Violent Shaking / Banging on Spin" },
-      { id: "door_locked", label: "Door Latch Stuck / Won't Unlock" }
-    ],
-    Microwave: [
-      { id: "no_heat", label: "Runs and Lights Up but Food Stays Cold" },
-      { id: "dead_display", label: "Display Completely Dark / Buttons Unresponsive" },
-      { id: "turntable_stuck", label: "Turntable Glass Plate Won't Turn" },
-      { id: "loud_humming", label: "Extremely Loud Humming / Buzzing" }
-    ]
-  };
-
   /**
-   * Fetch all preloaded customer complaints
+   * Retrieve all incoming complaints from Member 1 queue
    */
-  function getSampleComplaints() {
-    return [...SAMPLE_COMPLAINTS];
+  function getIncomingComplaints() {
+    return [...INCOMING_COMPLAINTS];
   }
 
   /**
    * Retrieve single complaint by ID
    */
   function getComplaintById(id) {
-    return SAMPLE_COMPLAINTS.find(c => c.id === id) || null;
-  }
-
-  /**
-   * Retrieve symptom catalog for an appliance (common + specific)
-   */
-  function getSymptomsForAppliance(appliance) {
-    const common = SYMPTOM_CATALOG.common;
-    const specific = SYMPTOM_CATALOG[appliance] || [];
-    return [...common, ...specific];
+    return INCOMING_COMPLAINTS.find(c => c.id === id) || null;
   }
 
   /**
@@ -153,7 +167,6 @@ const MockDatabase = (function() {
   function saveDiagnosisHistory(diagnosisRecord) {
     try {
       const history = getDiagnosisHistory();
-      // Add unique session record id and timestamp if missing
       const record = {
         historyId: "HIST-" + Date.now().toString(36) + "-" + Math.random().toString(36).substring(2, 6),
         savedAt: new Date().toISOString(),
@@ -186,9 +199,9 @@ const MockDatabase = (function() {
   }
 
   return {
-    getSampleComplaints,
+    getIncomingComplaints,
+    getSampleComplaints: getIncomingComplaints, // Backward-compatible alias
     getComplaintById,
-    getSymptomsForAppliance,
     getDiagnosisHistory,
     saveDiagnosisHistory,
     clearDiagnosisHistory

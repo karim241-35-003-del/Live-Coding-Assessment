@@ -3,8 +3,8 @@
  * Member 2: Fault Diagnosis Engine
  * File: app.js
  * 
- * Interactive Test UI controller.
- * Binds MockDatabase and DiagnosisEngine with the DOM.
+ * Controller for Member 2's Fault Diagnosis Engine UI.
+ * Connects simulated Member 1 intake queue (MockDatabase) with DiagnosisEngine.
  */
 
 import "./style.css";
@@ -15,155 +15,133 @@ const MockDatabase = MockDatabaseModule || (typeof window !== "undefined" ? wind
 const DiagnosisEngine = DiagnosisEngineModule || (typeof window !== "undefined" ? window.DiagnosisEngine : null);
 
 document.addEventListener("DOMContentLoaded", function() {
-  // DOM Elements
-  const mockSelect = document.getElementById("mockComplaintSelect");
-  const quickPillBtns = document.querySelectorAll(".quick-pill-btn");
-  const diagnosisForm = document.getElementById("diagnosisForm");
-  const applianceRadios = document.querySelectorAll('input[name="appliance"]');
-  const symptomsContainer = document.getElementById("symptomsList");
-  const descriptionInput = document.getElementById("complaintDescription");
-  const btnReset = document.getElementById("btnReset");
+  // DOM Elements - Queue
+  const complaintsQueue = document.getElementById("complaintsQueue");
+  const filterPills = document.querySelectorAll(".filter-pill");
 
-  // Output Elements
+  // DOM Elements - Diagnosis Output
   const dangerBanner = document.getElementById("dangerBanner");
   const dangerMessage = document.getElementById("dangerMessage");
   const applianceTag = document.getElementById("applianceTag");
+  const activeComplaintInfo = document.getElementById("activeComplaintInfo");
+  const infoComplaintId = document.getElementById("infoComplaintId");
+  const infoCustomerName = document.getElementById("infoCustomerName");
   const resFaultName = document.getElementById("resFaultName");
   const resFaultId = document.getElementById("resFaultId");
   const resConfidenceLabel = document.getElementById("resConfidenceLabel");
   const resConfidenceBar = document.getElementById("resConfidenceBar");
   const resCausesList = document.getElementById("resCausesList");
   const resRecommendation = document.getElementById("resRecommendation");
-  const jsonOutput = document.getElementById("jsonOutput");
-  const btnCopyJson = document.getElementById("btnCopyJson");
-  const copyStatusText = document.getElementById("copyStatusText");
+
+  // DOM Elements - History
   const historyList = document.getElementById("historyList");
   const btnClearHistory = document.getElementById("btnClearHistory");
 
-  let currentDiagnosis = null;
+  let activeFilter = "all";
+  let activeComplaintId = null;
 
-  // 1. Initialize Mock Complaints Select Dropdown
-  function initMockSelect() {
-    const complaints = MockDatabase.getSampleComplaints();
-    complaints.forEach(c => {
-      const option = document.createElement("option");
-      option.value = c.id;
-      option.textContent = `[${c.appliance}] ${c.title}`;
-      mockSelect.appendChild(option);
+  // 1. Render the Incoming Complaints Queue
+  function renderComplaintsQueue() {
+    const complaints = MockDatabase.getIncomingComplaints();
+    complaintsQueue.innerHTML = "";
+
+    const filtered = complaints.filter(c => {
+      if (activeFilter === "all") return true;
+      if (activeFilter === "Refrigerator") return c.applianceType === "Refrigerator";
+      if (activeFilter === "Washing Machine") return c.applianceType === "Washing Machine";
+      if (activeFilter === "Microwave Oven") return c.applianceType.includes("Microwave");
+      return true;
     });
 
-    mockSelect.addEventListener("change", function(e) {
-      const complaintId = e.target.value;
-      if (complaintId) {
-        loadComplaintById(complaintId);
-      }
+    if (filtered.length === 0) {
+      complaintsQueue.innerHTML = `<div class="empty-state">No complaints matching filter.</div>`;
+      return;
+    }
+
+    filtered.forEach(c => {
+      const card = document.createElement("div");
+      card.className = "complaint-card" + (c.id === activeComplaintId ? " active" : "");
+      card.setAttribute("data-id", c.id);
+
+      const priorityClass = `priority-${(c.priority || "medium").toLowerCase()}`;
+      const applianceIcon = c.applianceType.includes("Fridge") || c.applianceType.includes("Refrigerator")
+        ? "❄️"
+        : (c.applianceType.includes("Wash") ? "🌀" : "⚡");
+
+      card.innerHTML = `
+        <div class="complaint-top">
+          <span class="complaint-id">${c.id}</span>
+          <span class="priority-badge ${priorityClass}">${c.priority || "Normal"}</span>
+        </div>
+        <div class="complaint-customer">${c.customerName} • ${c.brand || c.applianceType}</div>
+        <div class="complaint-category">${c.issueCategory || "Reported Issue"}</div>
+        <div class="complaint-desc">"${c.description}"</div>
+        <div class="complaint-footer">
+          <span>${applianceIcon} ${c.applianceType}</span>
+          <span class="action-hint">Run Diagnosis →</span>
+        </div>
+      `;
+
+      card.addEventListener("click", () => {
+        handleSelectComplaint(c.id);
+      });
+
+      complaintsQueue.appendChild(card);
     });
   }
 
-  // 2. Load complaint data into form and automatically trigger diagnosis
-  function loadComplaintById(complaintId) {
+  // 2. Filter Pills Handler
+  filterPills.forEach(pill => {
+    pill.addEventListener("click", function() {
+      filterPills.forEach(p => p.classList.remove("active"));
+      this.classList.add("active");
+      activeFilter = this.getAttribute("data-filter");
+      renderComplaintsQueue();
+    });
+  });
+
+  // 3. Handle selection of a complaint
+  function handleSelectComplaint(complaintId) {
     const complaint = MockDatabase.getComplaintById(complaintId);
     if (!complaint) return;
 
-    // Set appliance radio
-    const targetRadio = document.querySelector(`input[name="appliance"][value="${complaint.appliance}"]`);
-    if (targetRadio) {
-      targetRadio.checked = true;
-      renderSymptoms(complaint.appliance);
-    }
+    activeComplaintId = complaintId;
 
-    // Check symptoms
-    if (Array.isArray(complaint.symptoms)) {
-      complaint.symptoms.forEach(symId => {
-        const checkbox = document.querySelector(`input[name="symptom"][value="${symId}"]`);
-        if (checkbox) checkbox.checked = true;
-      });
-    }
-
-    // Set description
-    descriptionInput.value = complaint.description || "";
-
-    // Sync select dropdown if not already matched
-    mockSelect.value = complaintId;
-
-    // Run diagnosis
-    executeDiagnosis();
-  }
-
-  // 3. Render symptom checkboxes dynamically based on selected appliance
-  function renderSymptoms(appliance) {
-    symptomsContainer.innerHTML = "";
-    const symptoms = MockDatabase.getSymptomsForAppliance(appliance);
-
-    symptoms.forEach(sym => {
-      const label = document.createElement("label");
-      label.className = "symptom-item";
-
-      const checkbox = document.createElement("input");
-      checkbox.type = "checkbox";
-      checkbox.name = "symptom";
-      checkbox.value = sym.id;
-
-      const span = document.createElement("span");
-      span.textContent = sym.label;
-
-      label.appendChild(checkbox);
-      label.appendChild(span);
-      symptomsContainer.appendChild(label);
-    });
-  }
-
-  // Listen to appliance switch to refresh symptoms
-  applianceRadios.forEach(radio => {
-    radio.addEventListener("change", function(e) {
-      if (e.target.checked) {
-        renderSymptoms(e.target.value);
+    // Highlight active card
+    document.querySelectorAll(".complaint-card").forEach(el => {
+      if (el.getAttribute("data-id") === complaintId) {
+        el.classList.add("active");
+      } else {
+        el.classList.remove("active");
       }
     });
-  });
 
-  // 4. Quick Pills Click Handlers
-  quickPillBtns.forEach(btn => {
-    btn.addEventListener("click", function() {
-      const complaintId = this.getAttribute("data-id");
-      loadComplaintById(complaintId);
-    });
-  });
+    // Update active complaint banner
+    infoComplaintId.textContent = complaint.id;
+    infoCustomerName.textContent = `(${complaint.customerName} — ${complaint.brand || ""} ${complaint.applianceType})`;
 
-  // 5. Gather input and execute diagnosis
-  function executeDiagnosis() {
-    const selectedAppliance = document.querySelector('input[name="appliance"]:checked')?.value || "Refrigerator";
-    const checkedSymptoms = Array.from(document.querySelectorAll('input[name="symptom"]:checked')).map(cb => cb.value);
-    const description = descriptionInput.value.trim();
+    // Run Member 2 Diagnosis Engine
+    const diagnosis = DiagnosisEngine.diagnoseFault(complaint);
 
-    // Call Diagnosis Engine
-    const diagnosis = DiagnosisEngine.diagnoseFault({
-      appliance: selectedAppliance,
-      symptoms: checkedSymptoms,
-      description: description
-    });
-
-    currentDiagnosis = diagnosis;
-
-    // Save to Mock Database (localStorage)
+    // Save to localStorage history
     MockDatabase.saveDiagnosisHistory(diagnosis);
 
-    // Render results to UI
+    // Render results
     renderDiagnosisResult(diagnosis);
     renderHistoryList();
   }
 
-  // 6. Display diagnosis result on UI
+  // 4. Render Diagnosis Results on UI
   function renderDiagnosisResult(diag) {
     if (!diag) return;
 
     // Appliance Tag
     applianceTag.textContent = diag.appliance;
 
-    // Danger Banner
+    // Danger Alert Banner (Priority Safety)
     if (diag.isDangerous) {
       dangerBanner.style.display = "flex";
-      dangerMessage.textContent = diag.safetyWarning || "Dangerous condition detected. Unplug appliance immediately.";
+      dangerMessage.textContent = diag.safetyWarning || "Critical safety condition detected. Disconnect power immediately!";
     } else {
       dangerBanner.style.display = "none";
     }
@@ -172,12 +150,11 @@ document.addEventListener("DOMContentLoaded", function() {
     resFaultName.textContent = diag.likelyFault;
     resFaultId.textContent = diag.faultId;
 
-    // Confidence
+    // Diagnostic Confidence Meter
     const score = diag.confidenceScore || 0;
     resConfidenceLabel.textContent = diag.confidence;
     resConfidenceBar.style.width = score + "%";
 
-    // Set Confidence Color
     resConfidenceBar.className = "confidence-bar-fill";
     if (diag.confidenceLevel === "High") {
       resConfidenceBar.classList.add("conf-high");
@@ -187,7 +164,7 @@ document.addEventListener("DOMContentLoaded", function() {
       resConfidenceBar.classList.add("conf-low");
     }
 
-    // Causes List
+    // Probable Causes List
     resCausesList.innerHTML = "";
     if (diag.possibleCauses && diag.possibleCauses.length > 0) {
       diag.possibleCauses.forEach(cause => {
@@ -197,25 +174,21 @@ document.addEventListener("DOMContentLoaded", function() {
       });
     } else {
       const li = document.createElement("li");
-      li.textContent = "No specific causes identified.";
+      li.textContent = "No specific cause identified.";
       resCausesList.appendChild(li);
     }
 
-    // Recommendation
+    // Recommended Action / Inspection
     resRecommendation.textContent = diag.recommendation;
-
-    // JSON Output for Member 3
-    jsonOutput.textContent = JSON.stringify(diag, null, 2);
-    copyStatusText.textContent = "Click Copy to clipboard";
   }
 
-  // 7. Render Recent Diagnosis History from localStorage
+  // 5. Render Recent Diagnosis History from localStorage
   function renderHistoryList() {
     const history = MockDatabase.getDiagnosisHistory();
     historyList.innerHTML = "";
 
     if (!history || history.length === 0) {
-      historyList.innerHTML = `<div class="empty-state">No diagnosis records saved yet. Run a diagnosis above to see history.</div>`;
+      historyList.innerHTML = `<div class="empty-state">No diagnosis records saved yet. Click any complaint in the queue to run diagnosis.</div>`;
       return;
     }
 
@@ -224,10 +197,12 @@ document.addEventListener("DOMContentLoaded", function() {
       itemEl.className = "history-item";
 
       const leftDiv = document.createElement("div");
-      const timeStr = new Date(item.diagnosedAt || item.savedAt || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const timeStr = new Date(item.diagnosedAt || item.savedAt || Date.now()).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+      const complaintPrefix = item.complaintId ? `${item.complaintId} • ` : "";
+
       leftDiv.innerHTML = `
         <div class="history-fault-name">${item.likelyFault}</div>
-        <div class="history-meta">${item.appliance} • ${timeStr} • ${item.faultId}</div>
+        <div class="history-meta">${complaintPrefix}${item.appliance} • ${timeStr} • ${item.faultId}</div>
       `;
 
       const rightDiv = document.createElement("div");
@@ -240,29 +215,17 @@ document.addEventListener("DOMContentLoaded", function() {
 
       itemEl.addEventListener("click", function() {
         renderDiagnosisResult(item);
+        if (item.complaintId) {
+          infoComplaintId.textContent = item.complaintId;
+          infoCustomerName.textContent = item.customerName ? `(${item.customerName})` : "";
+        }
       });
 
       historyList.appendChild(itemEl);
     });
   }
 
-  // 8. Copy JSON to Clipboard
-  btnCopyJson.addEventListener("click", function() {
-    if (!currentDiagnosis) return;
-    const jsonStr = JSON.stringify(currentDiagnosis, null, 2);
-
-    navigator.clipboard.writeText(jsonStr).then(() => {
-      copyStatusText.textContent = "✓ Copied to clipboard!";
-      setTimeout(() => {
-        copyStatusText.textContent = "Click Copy to clipboard";
-      }, 2500);
-    }).catch(err => {
-      console.error("Failed to copy:", err);
-      copyStatusText.textContent = "Failed to copy";
-    });
-  });
-
-  // 9. Clear History
+  // 6. Clear History Handler
   btnClearHistory.addEventListener("click", function() {
     if (confirm("Are you sure you want to clear the local diagnosis history?")) {
       MockDatabase.clearDiagnosisHistory();
@@ -270,34 +233,10 @@ document.addEventListener("DOMContentLoaded", function() {
     }
   });
 
-  // 10. Reset Form
-  btnReset.addEventListener("click", function() {
-    diagnosisForm.reset();
-    document.querySelector('input[name="appliance"][value="Refrigerator"]').checked = true;
-    renderSymptoms("Refrigerator");
-    mockSelect.value = "";
-    dangerBanner.style.display = "none";
-    resFaultName.textContent = "Awaiting Diagnosis...";
-    resFaultId.textContent = "FLT-READY";
-    resConfidenceLabel.textContent = "0%";
-    resConfidenceBar.style.width = "0%";
-    resCausesList.innerHTML = `<li>Select an assessment complaint or enter symptoms to view probable causes.</li>`;
-    resRecommendation.textContent = "Run diagnosis to generate physical inspection steps and technician testing guidelines.";
-    jsonOutput.textContent = "// Diagnosis JSON payload will appear here...";
-    applianceTag.textContent = "Ready";
-  });
-
-  // 11. Form Submit
-  diagnosisForm.addEventListener("submit", function(e) {
-    e.preventDefault();
-    executeDiagnosis();
-  });
-
-  // Initialize
-  initMockSelect();
-  renderSymptoms("Refrigerator");
+  // Initial Load
+  renderComplaintsQueue();
   renderHistoryList();
 
-  // Load the first assessment test case by default for immediate preview
-  loadComplaintById("CMP-REF-001");
+  // Load first complaint automatically
+  handleSelectComplaint("JAC-2026-001");
 });

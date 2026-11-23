@@ -14,6 +14,8 @@
   --warning-bg: #fffbeb;
   --success: #16a34a;
   --success-bg: #f0fdf4;
+  --purple: #7c3aed;
+  --purple-bg: #f5f3ff;
   --gray-50: #f8fafc;
   --gray-100: #f1f5f9;
   --gray-200: #e2e8f0;
@@ -106,7 +108,7 @@ header {
   border: 1px solid #bfdbfe;
 }
 
-/* Main Layout Grid */
+/* Main Grid Layout */
 .main-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -134,234 +136,175 @@ header {
   font-size: 1.15rem;
   font-weight: 700;
   color: var(--gray-900);
-  margin-bottom: 16px;
+  margin-bottom: 8px;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
-/* Mock complaints quick bar */
-.quick-select-box {
-  margin-bottom: 20px;
-}
-
-.select-wrapper select {
-  width: 100%;
-  padding: 10px 14px;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--gray-300);
-  font-size: 0.95rem;
-  background-color: var(--gray-50);
-  cursor: pointer;
-  outline: none;
-  transition: border-color 0.2s;
-}
-
-.select-wrapper select:focus {
-  border-color: var(--primary);
-  background-color: white;
-}
-
-.quick-pills-label {
-  font-size: 0.8rem;
+.queue-source-tag {
+  font-size: 0.75rem;
   font-weight: 600;
   color: var(--gray-500);
-  text-transform: uppercase;
-  margin-top: 12px;
-  margin-bottom: 8px;
+  background: var(--gray-100);
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--gray-200);
 }
 
-.quick-pills {
+.queue-instruction {
+  font-size: 0.88rem;
+  color: var(--gray-500);
+  margin-bottom: 16px;
+}
+
+/* Filter Pills */
+.filter-pills {
   display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
   flex-wrap: wrap;
-  gap: 6px;
 }
 
-.quick-pill-btn {
+.filter-pill {
   background: var(--gray-100);
   border: 1px solid var(--gray-200);
-  padding: 5px 10px;
-  font-size: 0.8rem;
-  border-radius: var(--radius-sm);
+  padding: 6px 14px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  border-radius: 999px;
   cursor: pointer;
   color: var(--gray-700);
   transition: all 0.2s;
 }
 
-.quick-pill-btn:hover {
-  background: var(--primary-light);
-  color: var(--primary);
-  border-color: var(--primary);
-}
-
-.quick-pill-btn.danger-pill:hover {
-  background: var(--danger-bg);
-  color: var(--danger);
-  border-color: var(--danger-border);
-}
-
-/* Form Styles */
-.form-group {
-  margin-bottom: 18px;
-}
-
-.form-label {
-  display: block;
-  font-size: 0.88rem;
-  font-weight: 600;
-  color: var(--gray-700);
-  margin-bottom: 6px;
-}
-
-.appliance-selector-group {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-}
-
-.appliance-option {
-  position: relative;
-}
-
-.appliance-option input[type="radio"] {
-  position: absolute;
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-
-.appliance-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 14px 8px;
-  border: 2px solid var(--gray-200);
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  background: var(--gray-50);
-  transition: all 0.2s ease;
-  text-align: center;
-}
-
-.appliance-card .icon {
-  font-size: 1.5rem;
-  margin-bottom: 4px;
-}
-
-.appliance-card .name {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--gray-700);
-}
-
-.appliance-option input[type="radio"]:checked + .appliance-card {
-  border-color: var(--primary);
-  background: var(--primary-light);
-}
-
-.appliance-option input[type="radio"]:checked + .appliance-card .name {
-  color: var(--primary);
-}
-
-/* Symptom Checkboxes */
-.symptoms-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 8px;
-  max-height: 220px;
-  overflow-y: auto;
-  padding: 8px;
-  border: 1px solid var(--gray-200);
-  border-radius: var(--radius-md);
-  background: var(--gray-50);
-}
-
-.symptom-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 10px;
-  background: white;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--gray-200);
-  font-size: 0.88rem;
-  cursor: pointer;
-  transition: background 0.15s;
-}
-
-.symptom-item:hover {
-  background: #f1f5f9;
-}
-
-.symptom-item input[type="checkbox"] {
-  accent-color: var(--primary);
-  width: 16px;
-  height: 16px;
-}
-
-textarea.form-textarea {
-  width: 100%;
-  padding: 12px;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--gray-300);
-  font-size: 0.92rem;
-  font-family: inherit;
-  resize: vertical;
-  min-height: 80px;
-  outline: none;
-  transition: border-color 0.2s;
-}
-
-textarea.form-textarea:focus {
-  border-color: var(--primary);
-}
-
-/* Button Actions */
-.button-row {
-  display: flex;
-  gap: 12px;
-  margin-top: 20px;
-}
-
-.btn {
-  padding: 12px 20px;
-  font-size: 0.95rem;
-  font-weight: 600;
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  border: none;
-  transition: all 0.2s;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-}
-
-.btn-primary {
-  background: var(--primary);
-  color: white;
-  flex: 1;
-}
-
-.btn-primary:hover {
-  background: var(--primary-hover);
-}
-
-.btn-secondary {
-  background: var(--gray-100);
-  color: var(--gray-700);
-  border: 1px solid var(--gray-300);
-}
-
-.btn-secondary:hover {
+.filter-pill:hover {
   background: var(--gray-200);
 }
 
-.btn-sm {
-  padding: 6px 12px;
+.filter-pill.active {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+/* Complaints Queue List */
+.complaints-queue {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 600px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.complaint-card {
+  background: var(--gray-50);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.complaint-card:hover {
+  border-color: var(--primary);
+  background: #f8fafc;
+  box-shadow: var(--shadow-sm);
+  transform: translateY(-1px);
+}
+
+.complaint-card.active {
+  background: var(--primary-light);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 1px var(--primary);
+}
+
+.complaint-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.complaint-id {
+  font-family: monospace;
+  font-weight: 700;
+  font-size: 0.88rem;
+  color: var(--primary);
+}
+
+.priority-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.priority-urgent {
+  background: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fca5a5;
+}
+
+.priority-high {
+  background: #fef3c7;
+  color: #b45309;
+  border: 1px solid #fde68a;
+}
+
+.priority-medium {
+  background: #e0f2fe;
+  color: #0369a1;
+  border: 1px solid #bae6fd;
+}
+
+.priority-low {
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+}
+
+.complaint-customer {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--gray-900);
+  margin-bottom: 4px;
+}
+
+.complaint-category {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--purple);
+  margin-bottom: 6px;
+}
+
+.complaint-desc {
+  font-size: 0.85rem;
+  color: var(--gray-700);
+  line-height: 1.4;
+  margin-bottom: 10px;
+}
+
+.complaint-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   font-size: 0.8rem;
-  border-radius: var(--radius-sm);
+  color: var(--gray-500);
+  border-top: 1px solid var(--gray-200);
+  padding-top: 8px;
+  margin-top: 6px;
+}
+
+.action-hint {
+  font-weight: 600;
+  color: var(--primary);
 }
 
 /* Danger Alert Banner */
@@ -401,6 +344,36 @@ textarea.form-textarea:focus {
   font-size: 0.92rem;
   font-weight: 600;
   margin-top: 4px;
+}
+
+/* Active Complaint Info Box */
+.active-complaint-info {
+  background: var(--gray-50);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-sm);
+  padding: 8px 14px;
+  font-size: 0.85rem;
+  margin-bottom: 16px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.info-label {
+  color: var(--gray-500);
+  font-weight: 600;
+}
+
+.info-id {
+  font-family: monospace;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.info-customer {
+  color: var(--gray-800);
+  font-weight: 600;
 }
 
 /* Diagnosis Result Card */
@@ -513,7 +486,7 @@ textarea.form-textarea:focus {
   border: 1px solid #99f6e4;
   border-radius: var(--radius-md);
   padding: 14px 16px;
-  margin-top: 14px;
+  margin-top: 10px;
   display: flex;
   gap: 12px;
 }
@@ -527,38 +500,6 @@ textarea.form-textarea:focus {
   font-size: 0.9rem;
   color: #115e59;
   line-height: 1.4;
-}
-
-/* JSON Output Box */
-.json-container {
-  position: relative;
-  background: #0f172a;
-  border-radius: var(--radius-md);
-  overflow: hidden;
-  margin-top: 12px;
-}
-
-.json-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 8px 14px;
-  background: #1e293b;
-  border-bottom: 1px solid #334155;
-  color: #94a3b8;
-  font-size: 0.75rem;
-  font-weight: 600;
-}
-
-pre.json-code {
-  color: #38bdf8;
-  font-family: Consolas, Monaco, "Courier New", monospace;
-  font-size: 0.82rem;
-  padding: 14px;
-  max-height: 260px;
-  overflow: auto;
-  white-space: pre-wrap;
-  word-break: break-all;
 }
 
 /* History Box */
@@ -598,11 +539,20 @@ pre.json-code {
   color: var(--gray-800);
 }
 
-.history-tag {
-  font-size: 0.75rem;
+.btn {
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  border: 1px solid var(--gray-300);
+  background: var(--gray-100);
+  color: var(--gray-700);
   font-weight: 600;
-  padding: 2px 8px;
-  border-radius: 999px;
+  transition: all 0.2s;
+}
+
+.btn:hover {
+  background: var(--gray-200);
 }
 
 .empty-state {

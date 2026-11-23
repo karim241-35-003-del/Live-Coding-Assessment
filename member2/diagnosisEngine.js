@@ -511,15 +511,21 @@ const DiagnosisEngine = (function() {
    * Main Diagnostic Engine Entry Point
    * 
    * @param {Object} input
-   * @param {string} input.appliance - "Refrigerator", "Washing Machine", or "Microwave"
+   * @param {string} [input.appliance] - "Refrigerator", "Washing Machine", or "Microwave"
+   * @param {string} [input.applianceType] - Aligned with Member 1 schema
    * @param {Array<string>} [input.symptoms=[]] - Array of symptom IDs or keywords
    * @param {string} [input.description=""] - Free-text customer complaint description
-   * @returns {Object} Standardized structured diagnosis object for Member 3
+   * @param {string} [input.issueCategory=""] - Aligned with Member 1 issue category
+   * @returns {Object} Standardized structured diagnosis object ready for Member 3
    */
   function diagnoseFault(input) {
-    const rawAppliance = (input && input.appliance) ? String(input.appliance).trim() : "Unspecified";
+    const rawAppliance = (input && (input.applianceType || input.appliance)) ? String(input.applianceType || input.appliance).trim() : "Unspecified";
     const symptoms = (input && Array.isArray(input.symptoms)) ? input.symptoms : [];
-    const description = (input && input.description) ? String(input.description).trim() : "";
+    
+    // Combine description and issueCategory to maximize diagnostic accuracy
+    const rawDesc = (input && input.description) ? String(input.description).trim() : "";
+    const issueCat = (input && input.issueCategory) ? String(input.issueCategory).trim() : "";
+    const description = issueCat ? `${issueCat}. ${rawDesc}` : rawDesc;
 
     // Normalize appliance string
     let appliance = rawAppliance;
@@ -535,7 +541,7 @@ const DiagnosisEngine = (function() {
     // Step 1: PRIORITY SAFETY CHECK (Danger faults evaluated first)
     const safetyDiagnosis = checkPrioritySafety(appliance, symptoms, description);
     if (safetyDiagnosis) {
-      return enrichResult(safetyDiagnosis, appliance, symptoms, description);
+      return enrichResult(safetyDiagnosis, appliance, symptoms, description, input);
     }
 
     // Step 2: APPLIANCE-SPECIFIC RULE EVALUATION
@@ -553,29 +559,40 @@ const DiagnosisEngine = (function() {
       result = generateFallbackDiagnosis(appliance, symptoms, description);
     }
 
-    return enrichResult(result, appliance, symptoms, description);
+    return enrichResult(result, appliance, symptoms, description, input);
   }
 
   /**
-   * Enriches the diagnosis result with standardized metadata for Member 3 (Cost Estimator)
+   * Enriches the diagnosis result with standardized metadata and field aliases
+   * for seamless integration with Member 1 (Alif) and Member 3 (Arik).
    */
-  function enrichResult(result, appliance, symptoms, description) {
+  function enrichResult(result, appliance, symptoms, description, input) {
+    const inputObj = input || {};
     return {
       faultId: result.faultId,
-      appliance: appliance,
       likelyFault: result.likelyFault,
+      faultName: result.likelyFault, // Alias for Member 3 (Arik)
+      appliance: appliance,
+      applianceType: appliance, // Alias for Member 1 (Alif)
       possibleCauses: result.possibleCauses || [],
+      partsNeeded: result.possibleCauses || [], // Alias bridge for Member 3
       confidenceScore: result.confidenceScore || 0,
       confidenceLevel: result.confidenceLevel || "Low",
+      likelihood: result.confidenceLevel || "Low", // Alias for Member 3 (Arik)
       confidence: result.confidence || `${result.confidenceScore || 0}% (${result.confidenceLevel || "Low"})`,
       isDangerous: Boolean(result.isDangerous),
       safetyWarning: result.safetyWarning || null,
       recommendation: result.recommendation || "",
+      benchTestAdvice: result.recommendation || "", // Alias for Member 3 (Arik)
       diagnosedAt: new Date().toISOString(),
+      complaintId: inputObj.id || inputObj.complaintId || null,
+      customerName: inputObj.customerName || null,
       inputSummary: {
         appliance: appliance,
         symptoms: symptoms,
-        description: description
+        description: description,
+        brand: inputObj.brand || null,
+        modelNumber: inputObj.modelNumber || null
       }
     };
   }
