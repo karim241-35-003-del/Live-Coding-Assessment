@@ -13,80 +13,132 @@ import {
   TrendingDown,
   Info,
   Sliders,
-  Scale
+  Scale,
+  Flame,
+  Zap
 } from 'lucide-react';
-import { SHOP_METRICS, APPLIANCE_TYPES, MOCK_FAULTS } from '../data/mockDiagnostics';
+import {
+  SHOP_METRICS,
+  APPLIANCE_BENCHMARKS,
+  getCostDataForDiagnosis
+} from '../data/mockDiagnostics';
 
+/**
+ * =======================================================================
+ * FINAL DELIVERABLE: Cost Guardrail & Quote Risk Engine (Module 3)
+ * Developed by: Arik (Lead / Core Module 3)
+ * -----------------------------------------------------------------------
+ * Seamless Integration Interface:
+ * - Accepts `diagnosis` object from Member 2's DiagnosisEngine
+ * - Accepts `complaint` object from Member 1's Customer Intake
+ * - Works both within the unified team workflow and standalone!
+ * =======================================================================
+ */
 export default function CostGuardrail({
-  activeFault: propActiveFault,
-  detectedFaults = [],
-  selectedAppliance = 'fridge',
-  selectedComplaint = 'noise',
-  answers = {},
-  customNote = '',
+  // Direct integration props from Member 1 & 2
+  diagnosis,
+  complaint,
+
+  // Fallback / Standalone testing props
+  activeFault,
+  selectedAppliance,
+  selectedComplaint,
+  customNote,
   applianceAge: propApplianceAge = 6
 }) {
-  const defaultFault = useMemo(() => {
-    return MOCK_FAULTS.find((f) => f.appliance === selectedAppliance) || MOCK_FAULTS[0];
-  }, [selectedAppliance]);
+  // Resolve Appliance Name
+  const applianceName = useMemo(() => {
+    if (diagnosis?.appliance) return diagnosis.appliance;
+    if (complaint?.applianceType) return complaint.applianceType;
+    if (selectedAppliance) {
+      const lower = selectedAppliance.toLowerCase();
+      if (lower.includes('fridge') || lower.includes('ref')) return 'Refrigerator';
+      if (lower.includes('wash')) return 'Washing Machine';
+      if (lower.includes('micro')) return 'Microwave';
+    }
+    return 'Refrigerator';
+  }, [diagnosis, complaint, selectedAppliance]);
 
-  const activeFault = propActiveFault || defaultFault;
+  // Resolve Diagnosis details
+  const diagnosisData = useMemo(() => {
+    return diagnosis || activeFault || {
+      likelyFault: "Evaporator Fan Motor or Compressor Relay Failure",
+      confidenceLevel: "High",
+      confidenceScore: 88,
+      isDangerous: false,
+      safetyWarning: null,
+      recommendation: "Inspect fan blades and check relay coil Ohmic resistance."
+    };
+  }, [diagnosis, activeFault]);
 
+  // Lookup cost benchmarks & guardrails for this exact diagnosis
+  const costProfile = useMemo(() => {
+    return getCostDataForDiagnosis(diagnosisData, applianceName);
+  }, [diagnosisData, applianceName]);
+
+  const applianceBenchmark = useMemo(() => {
+    return APPLIANCE_BENCHMARKS[applianceName] || APPLIANCE_BENCHMARKS.Refrigerator;
+  }, [applianceName]);
+
+  // Customer & Complaint Info
+  const initialCustomerName = complaint?.customerName || 'Jane Doe';
+  const initialCustomerPhone = complaint?.customerPhone || '(555) 019-2834';
+  const complaintDescription = complaint?.description || customNote || selectedComplaint || 'Standard diagnostic inspection';
+
+  // Interactive Local State
   const [localAge, setLocalAge] = useState(propApplianceAge);
   const [quoteMode, setQuoteMode] = useState('safe'); // 'safe' | 'risky'
-  const [fixedGuessAmount, setFixedGuessAmount] = useState(activeFault ? activeFault.minCost : 65);
+  const [fixedGuessAmount, setFixedGuessAmount] = useState(costProfile.minCost);
   const [customerAcknowledged, setCustomerAcknowledged] = useState(false);
   const [ticketGenerated, setTicketGenerated] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [customerName, setCustomerName] = useState('Jane Doe');
-  const [customerPhone, setCustomerPhone] = useState('(555) 019-2834');
+  const [customerName, setCustomerName] = useState(initialCustomerName);
+  const [customerPhone, setCustomerPhone] = useState(initialCustomerPhone);
+
+  // Sync state when props update
+  useEffect(() => {
+    if (complaint?.customerName) setCustomerName(complaint.customerName);
+    if (complaint?.customerPhone) setCustomerPhone(complaint.customerPhone);
+  }, [complaint]);
 
   useEffect(() => {
-    if (propApplianceAge !== undefined) {
-      setLocalAge(propApplianceAge);
-    }
+    if (propApplianceAge !== undefined) setLocalAge(propApplianceAge);
   }, [propApplianceAge]);
 
   useEffect(() => {
-    if (activeFault) {
-      setFixedGuessAmount(activeFault.minCost);
-      setTicketGenerated(false);
-    }
-  }, [activeFault]);
+    setFixedGuessAmount(costProfile.minCost);
+    setTicketGenerated(false);
+  }, [costProfile]);
 
-  const applianceMeta = useMemo(() => {
-    return APPLIANCE_TYPES.find((a) => a.id === (activeFault?.appliance || selectedAppliance)) || {
-      name: 'Household Appliance',
-      typicalReplacementValue: 600,
-      averageLifespanYears: 10
-    };
-  }, [activeFault, selectedAppliance]);
-
-  const minCost = activeFault ? activeFault.minCost : 50;
-  const maxCost = activeFault ? activeFault.maxCost : 250;
+  // Derived financial & guardrail metrics
+  const minCost = costProfile.minCost;
+  const maxCost = costProfile.maxCost;
   const variance = maxCost - minCost;
-  const replacementValue = activeFault?.replacementValue || applianceMeta.typicalReplacementValue || 600;
+  const replacementValue = costProfile.replacementValue || applianceBenchmark.typicalReplacementValue;
 
+  // Age-based depreciation calculation
   const depreciatedValue = useMemo(() => {
-    const lifespan = applianceMeta.averageLifespanYears || 10;
+    const lifespan = applianceBenchmark.averageLifespanYears || 10;
     const factor = Math.max(0.15, 1 - (localAge / lifespan) * 0.75);
     return Math.round(replacementValue * factor);
-  }, [replacementValue, localAge, applianceMeta]);
+  }, [replacementValue, localAge, applianceBenchmark]);
 
+  // BER (Beyond Economical Repair) evaluation:
+  // Repair exceeds 50% replacement value OR 65% depreciated residual value OR explicitly marked !isWorthRepairing
   const repairToNewRatio = replacementValue > 0 ? (maxCost / replacementValue) * 100 : 0;
   const repairToDepreciatedRatio = depreciatedValue > 0 ? (maxCost / depreciatedValue) * 100 : 0;
   const isBER = Boolean(
-    activeFault && (
-      repairToNewRatio >= SHOP_METRICS.berThresholdPercent ||
-      repairToDepreciatedRatio >= 65 ||
-      activeFault.isWorthRepairing === false ||
-      localAge >= 10
-    )
+    repairToNewRatio >= SHOP_METRICS.berThresholdPercent ||
+    repairToDepreciatedRatio >= 65 ||
+    costProfile.isWorthRepairing === false ||
+    localAge >= 10
   );
 
+  // Assistant Guess Simulator Deficit Math:
   const simulatedShopLoss = Math.max(0, maxCost - Number(fixedGuessAmount || 0));
   const lossPercentage = maxCost > 0 ? Math.round((simulatedShopLoss / maxCost) * 100) : 0;
 
+  // Unique Counter Ticket ID
   const ticketId = useMemo(() => {
     return `JAR-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
   }, [ticketGenerated]);
@@ -100,16 +152,15 @@ export default function CostGuardrail({
   Date: ${new Date().toLocaleDateString()}
 =========================================
 CUSTOMER: ${customerName} | Phone: ${customerPhone}
-APPLIANCE: ${applianceMeta.name} (Estimated Age: ${localAge} yrs)
-COMPLAINT: ${selectedComplaint || 'General malfunction'}
-STAFF NOTES: ${customNote || 'Standard bench intake'}
+APPLIANCE: ${applianceName} (Estimated Age: ${localAge} yrs)
+COMPLAINT: ${complaintDescription}
 
-PRELIMINARY DIAGNOSTIC HYPOTHESIS:
-- Primary Suspect: ${activeFault ? activeFault.faultName : 'Bench Diagnostic'}
-- Likelihood: ${activeFault ? activeFault.likelihood : 'Medium'}
-
+DIAGNOSIS (Member 2 Triage Engine):
+- Fault: ${costProfile.faultName}
+- Confidence: ${diagnosisData.confidence || `${diagnosisData.confidenceScore || 85}% (${diagnosisData.confidenceLevel || 'High'})`}
+${diagnosisData.isDangerous ? `* SAFETY HAZARD: ${diagnosisData.safetyWarning || 'Immediate inspection required'}\n` : ''}
 ESTIMATED BENCH REPAIR RANGE:
-$${minCost} – $${maxCost} (Pending physical bench teardown)
+$${minCost} – $${maxCost} (Pending bench physical teardown)
 
 LEGAL COUNTER GUARDRAIL CLAUSE:
 "${SHOP_METRICS.disclaimerText}"
@@ -133,12 +184,28 @@ Intake Specialist: ${SHOP_METRICS.intakeOfficer}
   return (
     <div className="card guardrail-card">
       <div className="card-header">
-        <span className="step-tag primary-tag">Step 3 of 3</span>
-        <h2>Cost Guardrail & Counter Intake Receipt</h2>
+        <span className="step-tag primary-tag">Step 3 of 3 • Cost Guardrail</span>
+        <h2>Quote Guardrail &amp; Counter Intake Receipt</h2>
         <p className="subtitle">
           Prevents counter fixed-quote traps, flags beyond-economical-repair units on Day 1, and prints customer receipts.
         </p>
       </div>
+
+      {/* Safety Hazard Alert if flagged by Member 2 */}
+      {diagnosisData.isDangerous && (
+        <div className="alert-box alert-danger safety-hazard-banner">
+          <div className="alert-icon-col">
+            <Flame size={32} className="text-danger" />
+          </div>
+          <div className="alert-content-col">
+            <span className="badge badge-danger">CRITICAL SAFETY HAZARD DETECTED</span>
+            <h4>{diagnosisData.likelyFault || costProfile.faultName}</h4>
+            <p className="alert-description">
+              {diagnosisData.safetyWarning || "Severe electrical or thermal fire risk. Do not operate unit until physical bench test is completed."}
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* 1. DAY-1 REPAIR VS. REPLACE (BER) ALERT BANNER */}
       <div className="section ber-section">
@@ -183,7 +250,7 @@ Intake Specialist: ${SHOP_METRICS.intakeOfficer}
                   <Scale size={15} /> Jamal's Counter Script for Assistant:
                 </div>
                 <p className="script-text">
-                  "Mr./Mrs. Customer, because your {applianceMeta.name} is {localAge} years old and this repair 
+                  "Mr./Mrs. Customer, because your {applianceName} is {localAge} years old and this repair 
                   can reach up to <strong>${maxCost}</strong>, spending that much on an older machine rarely makes sense 
                   when replacement units start around <strong>${replacementValue}</strong>. We strongly recommend recycling 
                   or replacing rather than leaving it in the shop for costly bench teardown."
@@ -199,7 +266,7 @@ Intake Specialist: ${SHOP_METRICS.intakeOfficer}
             <div className="alert-content-col">
               <div className="alert-heading-row">
                 <span className="badge badge-success">ECONOMICALLY VIABLE</span>
-                <h3>Repair is Economically Viable & Approved for Intake</h3>
+                <h3>Repair is Economically Viable &amp; Approved for Intake</h3>
               </div>
               <p className="alert-description">
                 Estimated repair range (<strong>${minCost} – ${maxCost}</strong>) represents only 
@@ -215,7 +282,7 @@ Intake Specialist: ${SHOP_METRICS.intakeOfficer}
       <div className="section range-estimator-section">
         <div className="section-title-row">
           <label className="section-title">
-            <DollarSign size={18} /> Safe Estimated Cost Range & Variance Meter
+            <DollarSign size={18} /> Safe Estimated Cost Range &amp; Variance Meter
           </label>
           <span className="variance-pill">
             Diagnosis Spread: <strong>+${variance} Variance</strong>
@@ -261,7 +328,7 @@ Intake Specialist: ${SHOP_METRICS.intakeOfficer}
           </div>
           <p className="guardrail-rule-text">
             <strong>The "Cost to Guessing" Problem:</strong> Never give a single dollar promise over the counter! 
-            An external symptom cannot distinguish a $45 drain obstruction from a $380 burnt compressor until the technician opens the chassis.
+            An external symptom cannot distinguish a minor sub-part from a catastrophic assembly failure until the technician opens the chassis.
           </p>
         </div>
       </div>
@@ -453,7 +520,7 @@ Intake Specialist: ${SHOP_METRICS.intakeOfficer}
             <div className="receipt-header">
               <div className="receipt-brand">
                 <h3>{SHOP_METRICS.shopName.toUpperCase()}</h3>
-                <p>Commercial & Residential Appliance Diagnostics • Certified Bench Triage</p>
+                <p>Commercial &amp; Residential Appliance Diagnostics • Certified Bench Triage</p>
               </div>
               <div className="receipt-meta">
                 <span className="receipt-tag">{ticketId}</span>
@@ -471,20 +538,22 @@ Intake Specialist: ${SHOP_METRICS.intakeOfficer}
               </div>
               <div className="receipt-col">
                 <span className="r-label">Appliance Item:</span>
-                <span className="r-val">{applianceMeta.name}</span>
+                <span className="r-val">{applianceName}</span>
                 <span className="r-sub">Approx. Age: {localAge} Years</span>
               </div>
               <div className="receipt-col">
                 <span className="r-label">Recorded Complaint:</span>
-                <span className="r-val">"{selectedComplaint || 'Customer reported malfunction'}"</span>
-                <span className="r-sub">{customNote || 'Standard intake'}</span>
+                <span className="r-val">"{complaintDescription}"</span>
+                <span className="r-sub">Priority: {complaint?.priority || 'Standard'}</span>
               </div>
             </div>
 
             <div className="receipt-diagnosis-box">
               <div className="rd-row">
                 <span className="rd-label">Diagnostic Hypothesis:</span>
-                <strong className="rd-val">{activeFault.faultName} ({activeFault.likelihood} Match)</strong>
+                <strong className="rd-val">
+                  {costProfile.faultName} ({diagnosisData.confidence || `${diagnosisData.confidenceScore || 85}%`})
+                </strong>
               </div>
               <div className="rd-row">
                 <span className="rd-label">Estimated Diagnostic Range:</span>
