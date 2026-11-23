@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   User,
   Phone,
@@ -24,6 +24,8 @@ import JobCardModal from '../components/common/JobCardModal';
 export default function NewComplaint() {
   const { registerComplaint, customers } = useData();
   const navigate = useNavigate();
+  const location = useLocation();
+  const prefill = location.state?.prefillCustomer || null;
 
   // Current live formatted registration timestamp
   const [currentTimestamp, setCurrentTimestamp] = useState('');
@@ -49,10 +51,10 @@ export default function NewComplaint() {
 
   // Form State
   const [formData, setFormData] = useState({
-    customerName: '',
-    customerPhone: '',
-    customerEmail: '',
-    customerAddress: '',
+    customerName: prefill?.customerName || '',
+    customerPhone: prefill?.customerPhone || '',
+    customerEmail: prefill?.customerEmail || '',
+    customerAddress: prefill?.customerAddress || '',
     applianceType: 'Refrigerator',
     brand: 'Walton',
     customBrand: '',

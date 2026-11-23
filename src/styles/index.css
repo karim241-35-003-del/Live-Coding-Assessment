@@ -1878,6 +1878,777 @@ button, input, select, textarea {
 }
 
 /* =========================================================
+   ENHANCED GRAPHICAL CUSTOMER RECORDS & COMPLAINT PIPELINE
+   ========================================================= */
+
+/* KPI Metric Cards */
+.customer-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+}
+
+.kpi-mini-card {
+  background: #ffffff;
+  border: 1px solid var(--slate-200);
+  border-radius: var(--radius-lg);
+  padding: 1.15rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.kpi-mini-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.kpi-icon-box {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.bg-blue-soft { background-color: #e0f2fe; }
+.bg-amber-soft { background-color: #fef3c7; }
+.bg-emerald-soft { background-color: #d1fae5; }
+
+.kpi-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.kpi-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--slate-500);
+}
+
+.kpi-value {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--slate-900);
+  line-height: 1.1;
+}
+
+/* Toolbar & View Mode Switcher */
+.customer-toolbar-row, .complaint-toolbar-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.filter-pill-tabs {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background-color: var(--slate-100);
+  padding: 0.25rem;
+  border-radius: var(--radius-md);
+}
+
+.filter-tab-pill {
+  background: none;
+  border: none;
+  padding: 0.4rem 0.85rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--slate-600);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+.filter-tab-pill:hover {
+  color: var(--slate-900);
+}
+.filter-tab-pill.active {
+  background-color: #ffffff;
+  color: var(--primary);
+  font-weight: 700;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.view-mode-toggle {
+  display: flex;
+  align-items: center;
+  background-color: var(--slate-100);
+  padding: 0.2rem;
+  border-radius: var(--radius-md);
+  margin-left: auto;
+}
+
+.view-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.4rem 0.65rem;
+  background: none;
+  border: none;
+  color: var(--slate-500);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.view-btn:hover { color: var(--slate-800); }
+.view-btn.active {
+  background-color: #ffffff;
+  color: var(--primary);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+/* Customer Visual Cards Grid */
+.customer-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 1.25rem;
+}
+
+.customer-visual-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border: 1px solid var(--slate-200);
+  border-radius: var(--radius-lg);
+  padding: 1.35rem;
+  background: #ffffff;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s ease;
+}
+.customer-visual-card:hover {
+  border-color: var(--primary-hover);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.cust-card-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  margin-bottom: 1rem;
+}
+
+.cust-avatar-ring {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0284c7, #38bdf8);
+  padding: 2.5px;
+  flex-shrink: 0;
+}
+
+.cust-avatar-inner {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background-color: #ffffff;
+  color: var(--primary);
+  font-weight: 800;
+  font-size: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cust-identity-col {
+  flex: 1;
+  min-width: 0;
+}
+
+.cust-id-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.2rem;
+}
+
+.active-repair-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background-color: #fef3c7;
+  color: #92400e;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
+  border-radius: 9999px;
+  border: 1px solid #fde68a;
+}
+
+.pulse-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #f59e0b;
+  animation: pulseAnim 1.6s infinite ease-in-out;
+}
+@keyframes pulseAnim {
+  0% { transform: scale(0.9); opacity: 1; }
+  50% { transform: scale(1.4); opacity: 0.5; }
+  100% { transform: scale(0.9); opacity: 1; }
+}
+
+.cust-name-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--slate-900);
+  line-height: 1.2;
+}
+
+.cust-date-label {
+  font-size: 0.72rem;
+  color: var(--slate-400);
+}
+
+.cust-contact-box {
+  background-color: var(--slate-50);
+  border: 1px solid var(--slate-200);
+  border-radius: var(--radius-md);
+  padding: 0.75rem 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  margin-bottom: 0.85rem;
+}
+
+.contact-pill-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--slate-700);
+  font-weight: 600;
+}
+.contact-pill-link:hover { color: var(--primary); }
+
+.contact-address-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+  color: var(--slate-500);
+  font-size: 0.75rem;
+  line-height: 1.3;
+}
+
+.cust-appliances-section {
+  margin-bottom: 1rem;
+}
+
+.micro-label {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--slate-400);
+  text-transform: uppercase;
+  margin-bottom: 0.35rem;
+}
+
+.appliance-chips-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.appliance-micro-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  background-color: #ffffff;
+  border: 1px solid var(--slate-200);
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--slate-700);
+}
+
+.cust-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--slate-100);
+}
+
+.ticket-counter-badge {
+  font-size: 0.78rem;
+  color: var(--slate-600);
+  background-color: var(--slate-100);
+  padding: 0.25rem 0.6rem;
+  border-radius: 9999px;
+}
+
+.footer-action-buttons {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+/* =========================================================
+   COMPLAINT PIPELINE & KANBAN STYLES
+   ========================================================= */
+
+.stage-pipeline-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 1rem;
+}
+
+.stage-card {
+  background: #ffffff;
+  border: 2px solid var(--slate-200);
+  border-radius: var(--radius-lg);
+  padding: 1rem 1.15rem;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.stage-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--slate-300);
+  box-shadow: var(--shadow-md);
+}
+
+.stage-card.active {
+  border-color: var(--primary);
+  background: #f0f9ff;
+  box-shadow: 0 0 0 3px var(--primary-focus);
+}
+
+.stage-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.35rem;
+}
+
+.stage-title {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--slate-800);
+}
+
+.stage-pill-count {
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding: 0.15rem 0.55rem;
+  border-radius: 9999px;
+  color: #ffffff;
+}
+.bg-slate { background-color: var(--slate-600); }
+.bg-amber { background-color: var(--warning); }
+.bg-blue { background-color: var(--info); }
+.bg-emerald { background-color: var(--success); }
+.bg-slate-subtle { background-color: var(--slate-400); }
+
+.stage-desc {
+  font-size: 0.72rem;
+  color: var(--slate-500);
+  line-height: 1.25;
+}
+
+/* Appliance Category Quick Filter */
+.appliance-quick-filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.filter-bar-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--slate-500);
+  text-transform: uppercase;
+}
+
+.appliance-filter-chips {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.app-filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.85rem;
+  background-color: #ffffff;
+  border: 1.5px solid var(--slate-200);
+  border-radius: 9999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--slate-700);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.app-filter-chip:hover {
+  border-color: var(--slate-400);
+  background-color: var(--slate-50);
+}
+.app-filter-chip.active {
+  border-color: var(--primary);
+  background-color: var(--primary-light);
+  color: var(--primary);
+  font-weight: 700;
+}
+.chip-count {
+  font-size: 0.75rem;
+  color: var(--slate-400);
+}
+.app-filter-chip.active .chip-count {
+  color: var(--primary);
+}
+
+/* Kanban Pipeline Container */
+.kanban-pipeline-container {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.25rem;
+  align-items: flex-start;
+}
+
+.kanban-column {
+  background-color: var(--slate-100);
+  border: 1px solid var(--slate-200);
+  border-radius: var(--radius-lg);
+  padding: 1rem;
+  min-height: 480px;
+  display: flex;
+  flex-direction: column;
+}
+
+.kanban-column-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.85rem;
+  padding-bottom: 0.6rem;
+  border-bottom: 1.5px solid var(--slate-200);
+}
+
+.column-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.column-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.column-name {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--slate-800);
+}
+
+.column-badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  background-color: #ffffff;
+  color: var(--slate-700);
+  padding: 0.15rem 0.5rem;
+  border-radius: 9999px;
+  border: 1px solid var(--slate-200);
+}
+
+.kanban-card-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  flex: 1;
+}
+
+.kanban-empty {
+  text-align: center;
+  padding: 2.5rem 1rem;
+  color: var(--slate-400);
+  font-size: 0.8rem;
+  font-style: italic;
+  border: 1px dashed var(--slate-300);
+  border-radius: var(--radius-md);
+}
+
+.kanban-card {
+  background-color: #ffffff;
+  border: 1px solid var(--slate-200);
+  border-left-width: 4px;
+  border-radius: var(--radius-md);
+  padding: 0.85rem;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.kanban-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.kanban-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ticket-badge-sm {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--primary);
+  background-color: var(--primary-light);
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+}
+
+.kanban-appliance-title {
+  font-size: 0.875rem;
+  color: var(--slate-900);
+}
+
+.kanban-fault-chip {
+  display: inline-block;
+  align-self: flex-start;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #9a3412;
+  background-color: #ffedd5;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+}
+
+.kanban-desc-clamp {
+  font-size: 0.78rem;
+  color: var(--slate-500);
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.kanban-customer-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  padding-top: 0.4rem;
+  border-top: 1px solid var(--slate-100);
+}
+
+.cust-mini-name {
+  font-weight: 700;
+  color: var(--slate-700);
+}
+
+.cust-mini-phone {
+  color: var(--slate-400);
+}
+
+.kanban-card-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 0.25rem;
+  padding-top: 0.4rem;
+}
+
+.btn-link-sm {
+  background: none;
+  border: none;
+  color: var(--primary);
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0;
+}
+.btn-link-sm:hover { text-decoration: underline; }
+
+/* Visual Complaint Cards Grid */
+.complaint-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 1.25rem;
+}
+
+.complaint-visual-card {
+  border: 1px solid var(--slate-200);
+  border-left-width: 5px;
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s ease;
+}
+.complaint-visual-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.accent-cyan { border-left-color: #06b6d4; }
+.accent-emerald { border-left-color: #10b981; }
+.accent-amber { border-left-color: #f59e0b; }
+.accent-blue { border-left-color: #3b82f6; }
+
+.complaint-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.85rem;
+}
+
+.complaint-appliance-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.app-emoji-box {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  background-color: var(--slate-100);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.35rem;
+  flex-shrink: 0;
+}
+
+.app-title-bold {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--slate-900);
+  line-height: 1.2;
+}
+
+.fault-title-amber {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #c2410c;
+}
+
+.complaint-customer-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background-color: var(--slate-50);
+  padding: 0.35rem 0.65rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.78rem;
+  color: var(--slate-700);
+  margin-bottom: 0.75rem;
+}
+
+.complaint-desc-snippet {
+  font-size: 0.8rem;
+  color: var(--slate-600);
+  line-height: 1.35;
+  margin-bottom: 1rem;
+}
+
+/* 4-Step Visual Progress Tracker */
+.visual-repair-tracker {
+  position: relative;
+  margin: 0.75rem 0 1.25rem;
+  padding: 0 0.5rem;
+}
+
+.tracker-steps-line {
+  position: absolute;
+  top: 10px;
+  left: 20px;
+  right: 20px;
+  height: 3px;
+  background-color: var(--slate-200);
+  z-index: 1;
+}
+
+.tracker-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #0284c7, #10b981);
+  transition: width 0.3s ease;
+}
+
+.tracker-nodes-row {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  justify-content: space-between;
+}
+
+.tracker-node {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.node-circle {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: var(--slate-200);
+  color: var(--slate-500);
+  font-size: 0.65rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #ffffff;
+}
+
+.node-text {
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: var(--slate-400);
+}
+
+.tracker-node.completed .node-circle {
+  background-color: var(--primary);
+  color: #ffffff;
+}
+
+.tracker-node.completed .node-text {
+  color: var(--slate-700);
+  font-weight: 700;
+}
+
+.complaint-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--slate-100);
+}
+
+/* Empty State Card */
+.empty-state-card {
+  text-align: center;
+  padding: 3.5rem 1rem;
+}
+
+/* =========================================================
    RESPONSIVE QUERIES
    ========================================================= */
 @media (max-width: 1024px) {
@@ -1893,9 +2664,33 @@ button, input, select, textarea {
   .filters-grid {
     grid-template-columns: 1fr 1fr;
   }
+  .customer-kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .stage-pipeline-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .kanban-pipeline-container {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 @media (max-width: 768px) {
+  .customer-kpi-grid {
+    grid-template-columns: 1fr;
+  }
+  .stage-pipeline-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .kanban-pipeline-container {
+    grid-template-columns: 1fr;
+  }
+  .complaint-cards-grid {
+    grid-template-columns: 1fr;
+  }
+  .customer-cards-grid {
+    grid-template-columns: 1fr;
+  }
   .sidebar-toggle-btn {
     display: block;
   }
