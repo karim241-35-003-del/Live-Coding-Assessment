@@ -8,7 +8,10 @@ import {
   LogOut,
   Wrench,
   HelpCircle,
-  ExternalLink
+  ExternalLink,
+  ShieldCheck,
+  Calculator,
+  Activity
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
@@ -32,7 +35,7 @@ export default function Sidebar({ isOpen, onClose }) {
       to: '/new-complaint',
       label: 'New Customer',
       icon: UserPlus,
-      badge: 'Registration'
+      badge: 'Module 1'
     },
     {
       to: '/customers',
@@ -43,6 +46,18 @@ export default function Sidebar({ isOpen, onClose }) {
       to: '/complaints',
       label: 'Complaint History',
       icon: ClipboardList
+    },
+    {
+      to: '/diagnosis',
+      label: 'Fault Diagnosis',
+      icon: Activity,
+      badge: 'Module 2'
+    },
+    {
+      to: '/cost-guardrail',
+      label: 'Cost Guardrail',
+      icon: ShieldCheck,
+      badge: 'Module 3'
     }
   ];
 

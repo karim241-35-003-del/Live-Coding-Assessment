@@ -9,6 +9,8 @@ import Dashboard from './pages/Dashboard';
 import NewComplaint from './pages/NewComplaint';
 import CustomerRecords from './pages/CustomerRecords';
 import ComplaintHistory from './pages/ComplaintHistory';
+import DiagnosisPage from './pages/DiagnosisPage';
+import CostGuardrailPage from './pages/CostGuardrailPage';
 
 // Protected Route component: redirects unauthenticated users to login
 function ProtectedRoute({ children }) {
@@ -44,7 +46,7 @@ export default function App() {
               }
             />
 
-            {/* Protected Application Routes */}
+            {/* Protected Unified Application Routes */}
             <Route
               element={
                 <ProtectedRoute>
@@ -57,6 +59,10 @@ export default function App() {
               <Route path="/new-complaint" element={<NewComplaint />} />
               <Route path="/customers" element={<CustomerRecords />} />
               <Route path="/complaints" element={<ComplaintHistory />} />
+              {/* Module 2: Fault Diagnosis Engine */}
+              <Route path="/diagnosis" element={<DiagnosisPage />} />
+              {/* Module 3: Repair Cost & Quote Guardrail */}
+              <Route path="/cost-guardrail" element={<CostGuardrailPage />} />
             </Route>
 
             {/* Fallback Route */}
