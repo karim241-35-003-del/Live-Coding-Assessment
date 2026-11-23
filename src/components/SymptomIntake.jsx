@@ -1,152 +1,83 @@
 import React from 'react';
-import { APPLIANCE_TYPES, VAGUE_COMPLAINTS, FOLLOW_UP_QUESTIONS } from '../data/mockDiagnostics';
-import { HelpCircle, MessageSquare, Check, X, Info } from 'lucide-react';
 
+/**
+ * =======================================================================
+ * MEMBER 1 SCAFFOLD: Front-Desk Symptom Intake
+ * Assigned To: Member 1 (Alif)
+ * -----------------------------------------------------------------------
+ * Expected Responsibilities:
+ * - Appliance Category Selection (Fridge, Washing Machine, Microwave)
+ * - Vague Customer Complaint Quick-Select Pills + Custom Text Notes
+ * - Dynamic 2-3 Follow-up Triage Questions based on selected symptom
+ * =======================================================================
+ */
 export default function SymptomIntake({
-  selectedAppliance,
+  selectedAppliance = 'fridge',
   onSelectAppliance,
-  selectedComplaint,
+  selectedComplaint = 'noise',
   onSelectComplaint,
-  customNote,
+  customNote = '',
   onChangeCustomNote,
-  answers,
-  onAnswerQuestion,
-  applianceAge,
+  applianceAge = 5,
   onChangeApplianceAge
 }) {
-  const currentQuestions = (selectedAppliance && selectedComplaint && FOLLOW_UP_QUESTIONS[selectedAppliance]?.[selectedComplaint]) || [];
-
   return (
     <div className="card member-card intake-card">
       <div className="card-header">
-        <div className="badge member-badge member-badge-1">Member 1 Scaffold</div>
-        <h2>Step 1: Front-Desk Symptom Intake</h2>
-        <p className="subtitle">Standardize vague customer descriptions into actionable diagnostic signals.</p>
+        <div className="badge member-badge member-badge-1">Member 1 (Alif) — Scaffold</div>
+        <h2>Step 1: Symptom Intake</h2>
+        <p className="subtitle">Front-desk customer symptom & appliance intake module.</p>
       </div>
 
-      <div className="section">
-        <label className="section-title">1. Appliance Category</label>
-        <div className="appliance-grid">
-          {APPLIANCE_TYPES.map((app) => {
-            const isSelected = selectedAppliance === app.id;
-            return (
-              <button
-                type="button"
-                key={app.id}
-                className={`appliance-btn ${isSelected ? 'active' : ''}`}
-                onClick={() => onSelectAppliance(app.id)}
-              >
-                <div className="app-icon-wrapper">
-                  {app.id === 'fridge' && '🧊'}
-                  {app.id === 'washing_machine' && '🧺'}
-                  {app.id === 'microwave' && '⚡'}
-                </div>
-                <div className="app-meta">
-                  <span className="app-name">{app.name}</span>
-                  <span className="app-sub">Avg repl. ~${app.typicalReplacementValue}</span>
-                </div>
-              </button>
-            );
-          })}
+      <div className="scaffold-placeholder">
+        <div className="scaffold-status">
+          <span className="scaffold-dot" />
+          <span>Scaffold / Interface Stub for Member 1</span>
         </div>
-      </div>
+        <p className="scaffold-desc">
+          This component is reserved for Member 1 to implement the full appliance picker, complaint pills, and dynamic triage questionnaire.
+        </p>
 
-      <div className="section">
-        <label className="section-title">2. What the Customer Complains About (Vague Complaint)</label>
-        <div className="complaint-pills">
-          {VAGUE_COMPLAINTS.map((c) => {
-            const isSelected = selectedComplaint === c.id;
-            return (
-              <button
-                type="button"
-                key={c.id}
-                className={`complaint-pill ${isSelected ? 'active' : ''}`}
-                onClick={() => onSelectComplaint(c.id)}
-              >
-                <span className="pill-quote">"{c.label}"</span>
-              </button>
-            );
-          })}
-        </div>
-
-        <div className="custom-note-group">
-          <label className="sub-label">
-            <MessageSquare size={14} /> Customer's Verbatim Notes / Model Details:
-          </label>
-          <input
-            type="text"
-            className="input-text"
-            placeholder="e.g. Whirlpool Gold Series, humming started 3 days ago..."
-            value={customNote}
-            onChange={(e) => onChangeCustomNote(e.target.value)}
-          />
-        </div>
-      </div>
-
-      {currentQuestions.length > 0 && (
-        <div className="section dynamic-questions">
-          <label className="section-title">
-            <HelpCircle size={16} /> 3. Targeted Triage Follow-ups (Ask Customer at Counter)
-          </label>
-          <p className="hint-text">
-            Jamal's rule: Ask these 2-3 quick questions before estimating to prevent quoting the wrong sub-assembly.
-          </p>
-
-          <div className="question-list">
-            {currentQuestions.map((q) => {
-              const currentVal = answers[q.id];
-              return (
-                <div key={q.id} className="question-item">
-                  <div className="q-text">{q.text}</div>
-                  <div className="q-buttons">
-                    <button
-                      type="button"
-                      className={`q-btn yes-btn ${currentVal === true ? 'selected' : ''}`}
-                      onClick={() => onAnswerQuestion(q.id, true)}
-                    >
-                      <Check size={14} /> Yes
-                    </button>
-                    <button
-                      type="button"
-                      className={`q-btn no-btn ${currentVal === false ? 'selected' : ''}`}
-                      onClick={() => onAnswerQuestion(q.id, false)}
-                    >
-                      <X size={14} /> No
-                    </button>
-                    <button
-                      type="button"
-                      className={`q-btn unsure-btn ${currentVal === undefined ? 'selected' : ''}`}
-                      onClick={() => onAnswerQuestion(q.id, undefined)}
-                    >
-                      Unsure
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
+        {/* Minimal functional controls so team workflow test doesn't break */}
+        <div className="scaffold-controls">
+          <div className="scaffold-field">
+            <label>Appliance Type:</label>
+            <select
+              value={selectedAppliance}
+              onChange={(e) => onSelectAppliance && onSelectAppliance(e.target.value)}
+              className="scaffold-select"
+            >
+              <option value="fridge">Refrigerator / Freezer</option>
+              <option value="washing_machine">Washing Machine</option>
+              <option value="microwave">Microwave Oven</option>
+            </select>
           </div>
-        </div>
-      )}
 
-      <div className="section age-slider-section">
-        <div className="slider-header">
-          <label className="section-title">Appliance Estimated Age</label>
-          <span className="age-display">{applianceAge} {applianceAge === 1 ? 'Year Old' : 'Years Old'}</span>
-        </div>
-        <input
-          type="range"
-          min="1"
-          max="15"
-          step="1"
-          value={applianceAge}
-          onChange={(e) => onChangeApplianceAge(parseInt(e.target.value, 10))}
-          className="range-slider"
-        />
-        <div className="slider-scale">
-          <span>1 yr (Like New)</span>
-          <span>5 yrs</span>
-          <span>10 yrs (High Depreciation)</span>
-          <span>15+ yrs</span>
+          <div className="scaffold-field">
+            <label>Customer Complaint:</label>
+            <select
+              value={selectedComplaint}
+              onChange={(e) => onSelectComplaint && onSelectComplaint(e.target.value)}
+              className="scaffold-select"
+            >
+              <option value="noise">"Making a strange / loud noise"</option>
+              <option value="dead">"Working yesterday, now nothing"</option>
+              <option value="water_leak">"Water coming from bottom"</option>
+              <option value="burning_smell">"Smells like something burning"</option>
+            </select>
+          </div>
+
+          <div className="scaffold-field">
+            <label>Appliance Age: <strong>{applianceAge} yrs</strong></label>
+            <input
+              type="range"
+              min="1"
+              max="15"
+              value={applianceAge}
+              onChange={(e) => onChangeApplianceAge && onChangeApplianceAge(Number(e.target.value))}
+              className="range-slider"
+            />
+          </div>
         </div>
       </div>
     </div>
