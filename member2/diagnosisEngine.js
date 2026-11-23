@@ -585,7 +585,13 @@ const DiagnosisEngine = (function() {
   };
 })();
 
-// Support Node.js environment for testing if applicable
+// Support Browser global, Node.js, and ES Modules
+if (typeof window !== "undefined") {
+  window.DiagnosisEngine = DiagnosisEngine;
+}
 if (typeof module !== "undefined" && module.exports) {
   module.exports = DiagnosisEngine;
 }
+
+export default DiagnosisEngine;
+export { DiagnosisEngine };

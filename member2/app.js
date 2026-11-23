@@ -7,6 +7,13 @@
  * Binds MockDatabase and DiagnosisEngine with the DOM.
  */
 
+import "./style.css";
+import MockDatabaseModule from "./mock.js";
+import DiagnosisEngineModule from "./diagnosisEngine.js";
+
+const MockDatabase = MockDatabaseModule || (typeof window !== "undefined" ? window.MockDatabase : null);
+const DiagnosisEngine = DiagnosisEngineModule || (typeof window !== "undefined" ? window.DiagnosisEngine : null);
+
 document.addEventListener("DOMContentLoaded", function() {
   // DOM Elements
   const mockSelect = document.getElementById("mockComplaintSelect");

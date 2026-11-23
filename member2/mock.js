@@ -195,7 +195,13 @@ const MockDatabase = (function() {
   };
 })();
 
-// Support Node.js environment for testing if applicable
+// Support Browser global, Node.js, and ES Modules
+if (typeof window !== "undefined") {
+  window.MockDatabase = MockDatabase;
+}
 if (typeof module !== "undefined" && module.exports) {
   module.exports = MockDatabase;
 }
+
+export default MockDatabase;
+export { MockDatabase };
