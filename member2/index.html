@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fault Diagnosis Engine - SE 331 (Member 2)</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Header Section -->
+    <header>
+      <div class="brand-section">
+        <h1>⚙️ Appliance Fault Diagnosis Engine</h1>
+        <p>SE 331 Live Coding Assessment • Member 2 (Nahid) — Rule-Based Diagnostic System</p>
+      </div>
+      <div class="badge-group">
+        <span class="badge badge-branch">Branch: Nahid</span>
+        <span class="badge badge-module">Member 2: Diagnosis Engine</span>
+      </div>
+    </header>
+
+    <!-- Main 2-Column Dashboard Grid -->
+    <main class="main-grid">
+      <!-- Left Column: Incoming Complaints Queue (Simulating Member 1 Input) -->
+      <section class="left-col">
+        <div class="card">
+          <div class="card-title">
+            <span>📥 Incoming Complaints Queue</span>
+            <span class="queue-source-tag">From Member 1 (Intake)</span>
+          </div>
+          <p class="queue-instruction">
+            Simulated intake stream. Click any customer complaint to run Member 2's Rule-Based Diagnosis Engine.
+          </p>
+
+          <!-- Filter Pills -->
+          <div class="filter-pills" id="applianceFilters">
+            <button type="button" class="filter-pill active" data-filter="all">All Complaints</button>
+            <button type="button" class="filter-pill" data-filter="Refrigerator">❄️ Refrigerator</button>
+            <button type="button" class="filter-pill" data-filter="Washing Machine">🌀 Washing Machine</button>
+            <button type="button" class="filter-pill" data-filter="Microwave Oven">⚡ Microwave</button>
+          </div>
+
+          <!-- Complaints Queue List -->
+          <div class="complaints-queue" id="complaintsQueue">
+            <!-- Dynamically populated from mock.js -->
+          </div>
+        </div>
+      </section>
+
+      <!-- Right Column: Member 2 Core Diagnosis Output & History -->
+      <section class="right-col">
+        <!-- Danger Alert Banner (Shown when isDangerous is true) -->
+        <div id="dangerBanner" class="danger-banner" style="display: none;">
+          <div class="danger-icon">⚠️</div>
+          <div>
+            <div class="danger-title">DO NOT OPERATE / UNPLUG IMMEDIATELY!</div>
+            <div id="dangerMessage" class="danger-message"></div>
+          </div>
+        </div>
+
+        <!-- Fault Diagnosis Result Card -->
+        <div class="card" id="resultCard">
+          <div class="card-title">
+            <span>📋 Fault Diagnosis Result</span>
+            <span id="applianceTag" class="badge badge-branch">Ready</span>
+          </div>
+
+          <!-- Associated Complaint Banner -->
+          <div class="active-complaint-info" id="activeComplaintInfo">
+            <span class="info-label">Active Complaint:</span>
+            <span id="infoComplaintId" class="info-id">Select a complaint</span>
+            <span id="infoCustomerName" class="info-customer"></span>
+          </div>
+
+          <div class="result-header">
+            <div class="fault-title-row">
+              <div class="fault-name" id="resFaultName">Awaiting Diagnosis...</div>
+              <div class="fault-id-tag" id="resFaultId">FLT-READY</div>
+            </div>
+
+            <!-- Confidence Bar -->
+            <div class="confidence-box">
+              <div class="confidence-label-row">
+                <span>Diagnostic Confidence</span>
+                <span id="resConfidenceLabel">0%</span>
+              </div>
+              <div class="confidence-bar-bg">
+                <div id="resConfidenceBar" class="confidence-bar-fill" style="width: 0%;"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Probable Causes -->
+          <div class="section-subtitle">Probable Causes</div>
+          <ul class="causes-list" id="resCausesList">
+            <li>Select an incoming complaint from the queue to view probable causes.</li>
+          </ul>
+
+          <!-- Recommended Action / Inspection -->
+          <div class="section-subtitle">Recommended Action & Inspection Guidelines</div>
+          <div class="recommendation-box">
+            <div class="rec-icon">🔧</div>
+            <div class="rec-text" id="resRecommendation">
+              Run diagnosis on an incoming complaint to generate technician bench-test recommendations.
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Diagnosis History (LocalStorage) -->
+        <div class="card">
+          <div class="card-title">
+            <span>🕒 Recent Diagnosis History (localStorage)</span>
+            <button type="button" class="btn btn-secondary btn-sm" id="btnClearHistory">Clear History</button>
+          </div>
+          <div class="history-list" id="historyList">
+            <!-- Dynamically populated from localStorage -->
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Vite Entry Point (ES Module) -->
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
