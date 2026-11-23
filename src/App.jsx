@@ -5,9 +5,9 @@ import { Wrench, Sparkles, CheckCircle2, User, FileText, ArrowRight } from 'luci
 import './index.css';
 
 /**
- * Live Demonstration Harness for Module 3 (Arik)
- * Feeds sample complaint payloads (Member 1) and diagnosis payloads (Member 2)
- * directly into Arik's CostGuardrail component to verify seamless merge compatibility.
+ * Live Demonstration Workstation for Jamal's Appliance Repair
+ * Connects customer intake registration and diagnostic triage results
+ * directly into the Cost Guardrail & Margin Calculator.
  */
 const LIVE_TEST_SCENARIOS = [
   {
@@ -144,7 +144,7 @@ export default function App() {
 
           <div className="preset-selector">
             <span className="preset-label">
-              <Sparkles size={14} /> Triage Scenarios:
+              <Sparkles size={14} /> Intake Scenarios:
             </span>
             {LIVE_TEST_SCENARIOS.map((scen, idx) => (
               <button
@@ -160,22 +160,22 @@ export default function App() {
         </div>
       </header>
 
-      {/* Main 2-Column Dashboard: Live Intake Feed (M1 & M2) + Arik's Cost Guardrail (M3) */}
+      {/* Main 2-Column Dashboard */}
       <main className="main-content-grid merge-layout">
-        {/* Left Column: Live Inbound Payload Feed from Member 1 & 2 */}
+        {/* Left Column: Intake Record & Triage Engine Output */}
         <div className="grid-column col-feed">
-          {/* Member 1 Inbound Complaint Card */}
+          {/* Customer Intake Record */}
           <div className="card feed-card">
             <div className="card-header">
-              <span className="step-tag">Inbound Stream • Member 1</span>
-              <h2>Customer Intake Record</h2>
-              <p className="subtitle">Data received from customer registration desk.</p>
+              <span className="step-tag">Customer Intake Record</span>
+              <h2>Registered Work Order</h2>
+              <p className="subtitle">Front-desk intake details and customer reported symptoms.</p>
             </div>
 
             <div className="feed-details-box">
               <div className="feed-row">
                 <span className="feed-label">Customer:</span>
-                <span className="feed-val">{currentScenario.complaint.customerName}</span>
+                <span className="feed-val font-bold">{currentScenario.complaint.customerName}</span>
                 <span className="feed-sub">({currentScenario.complaint.customerPhone})</span>
               </div>
               <div className="feed-row">
@@ -196,12 +196,12 @@ export default function App() {
             </div>
           </div>
 
-          {/* Member 2 Inbound Diagnosis Card */}
+          {/* Diagnostic Triage Card */}
           <div className="card feed-card">
             <div className="card-header">
-              <span className="step-tag">Diagnostic Stream • Member 2</span>
-              <h2>Diagnosis Engine Output</h2>
-              <p className="subtitle">Automated rule evaluation &amp; safety triage.</p>
+              <span className="step-tag">Diagnostic Triage</span>
+              <h2>Bench Triage Analysis</h2>
+              <p className="subtitle">Automated rule evaluation and safety hazard detection.</p>
             </div>
 
             <div className="feed-details-box">
@@ -216,7 +216,7 @@ export default function App() {
                 <span className="feed-val">{currentScenario.diagnosis.confidence}</span>
               </div>
               <div className="feed-row">
-                <span className="feed-label">Bench Recommendation:</span>
+                <span className="feed-label">Bench Advice:</span>
                 <span className="feed-val text-muted">{currentScenario.diagnosis.recommendation}</span>
               </div>
               {currentScenario.diagnosis.isDangerous && (
@@ -228,7 +228,7 @@ export default function App() {
           </div>
         </div>
 
-        {/* Right Column: Arik's Core Module 3 (Cost Guardrail) */}
+        {/* Right Column: Cost Guardrail & Margin Calculator */}
         <div className="grid-column col-guardrail">
           <CostGuardrail
             complaint={currentScenario.complaint}
@@ -243,7 +243,7 @@ export default function App() {
         <div className="footer-left">
           <span>{SHOP_METRICS.shopName} • Certified Bench Diagnostics &amp; Intake Counter System</span>
           <span className="dot-sep">•</span>
-          <span>Seamless Integration Interface: Member 1 (Intake) + Member 2 (Diagnosis) + Member 3 (Cost Guardrail)</span>
+          <span>Bench Rate: ${SHOP_METRICS.hourlyBenchRate}/hr • Min Diagnostic Fee: ${SHOP_METRICS.minDiagnosticInspectionFee}</span>
         </div>
         <div className="footer-right">
           <span>Counter Desk Terminal 01</span>

@@ -23,23 +23,9 @@ import {
   getCostDataForDiagnosis
 } from '../data/mockDiagnostics';
 
-/**
- * =======================================================================
- * FINAL DELIVERABLE: Cost Guardrail & Quote Risk Engine (Module 3)
- * Developed by: Arik (Lead / Core Module 3)
- * -----------------------------------------------------------------------
- * Seamless Integration Interface:
- * - Accepts `diagnosis` object from Member 2's DiagnosisEngine
- * - Accepts `complaint` object from Member 1's Customer Intake
- * - Works both within the unified team workflow and standalone!
- * =======================================================================
- */
 export default function CostGuardrail({
-  // Direct integration props from Member 1 & 2
   diagnosis,
   complaint,
-
-  // Fallback / Standalone testing props
   activeFault,
   selectedAppliance,
   selectedComplaint,
@@ -95,7 +81,6 @@ export default function CostGuardrail({
   const [customerName, setCustomerName] = useState(initialCustomerName);
   const [customerPhone, setCustomerPhone] = useState(initialCustomerPhone);
 
-  // Sync state when props update
   useEffect(() => {
     if (complaint?.customerName) setCustomerName(complaint.customerName);
     if (complaint?.customerPhone) setCustomerPhone(complaint.customerPhone);
@@ -123,8 +108,7 @@ export default function CostGuardrail({
     return Math.round(replacementValue * factor);
   }, [replacementValue, localAge, applianceBenchmark]);
 
-  // BER (Beyond Economical Repair) evaluation:
-  // Repair exceeds 50% replacement value OR 65% depreciated residual value OR explicitly marked !isWorthRepairing
+  // BER evaluation
   const repairToNewRatio = replacementValue > 0 ? (maxCost / replacementValue) * 100 : 0;
   const repairToDepreciatedRatio = depreciatedValue > 0 ? (maxCost / depreciatedValue) * 100 : 0;
   const isBER = Boolean(
@@ -155,7 +139,7 @@ CUSTOMER: ${customerName} | Phone: ${customerPhone}
 APPLIANCE: ${applianceName} (Estimated Age: ${localAge} yrs)
 COMPLAINT: ${complaintDescription}
 
-DIAGNOSIS (Member 2 Triage Engine):
+DIAGNOSTIC HYPOTHESIS:
 - Fault: ${costProfile.faultName}
 - Confidence: ${diagnosisData.confidence || `${diagnosisData.confidenceScore || 85}% (${diagnosisData.confidenceLevel || 'High'})`}
 ${diagnosisData.isDangerous ? `* SAFETY HAZARD: ${diagnosisData.safetyWarning || 'Immediate inspection required'}\n` : ''}
@@ -184,14 +168,14 @@ Intake Specialist: ${SHOP_METRICS.intakeOfficer}
   return (
     <div className="card guardrail-card">
       <div className="card-header">
-        <span className="step-tag primary-tag">Step 3 of 3 • Cost Guardrail</span>
-        <h2>Quote Guardrail &amp; Counter Intake Receipt</h2>
+        <span className="step-tag primary-tag">Quote Guardrail &amp; Margin Protection</span>
+        <h2>Estimated Cost Range &amp; Intake Receipt</h2>
         <p className="subtitle">
           Prevents counter fixed-quote traps, flags beyond-economical-repair units on Day 1, and prints customer receipts.
         </p>
       </div>
 
-      {/* Safety Hazard Alert if flagged by Member 2 */}
+      {/* Safety Hazard Alert if flagged */}
       {diagnosisData.isDangerous && (
         <div className="alert-box alert-danger safety-hazard-banner">
           <div className="alert-icon-col">
