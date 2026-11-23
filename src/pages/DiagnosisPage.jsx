@@ -171,7 +171,7 @@ export default function DiagnosisPage() {
   };
 
   const handleProceedToCost = () => {
-    navigate('/cost-guardrail', {
+    navigate('/cost-estimation', {
       state: {
         selectedComplaint: {
           id: selectedComplaintId || 'JAC-DIAG-LIVE',
@@ -351,7 +351,7 @@ export default function DiagnosisPage() {
                   className="btn btn-primary btn-block flex items-center justify-center gap-2"
                   onClick={handleProceedToCost}
                 >
-                  <span>Proceed to Cost Guardrail (Module 3)</span>
+                  <span>Proceed to Cost Estimation (Module 3)</span>
                   <ArrowRight size={16} />
                 </button>
               </div>

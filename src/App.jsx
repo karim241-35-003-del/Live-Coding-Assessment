@@ -61,8 +61,9 @@ export default function App() {
               <Route path="/complaints" element={<ComplaintHistory />} />
               {/* Module 2: Fault Diagnosis Engine */}
               <Route path="/diagnosis" element={<DiagnosisPage />} />
-              {/* Module 3: Repair Cost & Quote Guardrail */}
+              {/* Module 3: Repair Cost Estimation System */}
               <Route path="/cost-guardrail" element={<CostGuardrailPage />} />
+              <Route path="/cost-estimation" element={<CostGuardrailPage />} />
             </Route>
 
             {/* Fallback Route */}

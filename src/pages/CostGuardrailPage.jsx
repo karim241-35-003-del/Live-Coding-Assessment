@@ -159,9 +159,9 @@ export default function CostGuardrailPage() {
       {/* Header */}
       <div className="page-header">
         <div>
-          <h1 className="page-title">Repair Cost Estimation & Quote Guardrail</h1>
+          <h1 className="page-title">Repair Cost Estimation System</h1>
           <p className="page-subtitle">
-            Module 3 Engine: Bench repair cost modeling, BER threshold checks, and customer quote generation.
+            Module 3 Engine: Bench repair cost modeling, BER threshold checks, and customer quote generation in Bangladeshi Taka (৳ BDT).
           </p>
         </div>
         <div className="live-pill">

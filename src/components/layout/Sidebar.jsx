@@ -54,8 +54,8 @@ export default function Sidebar({ isOpen, onClose }) {
       badge: 'Module 2'
     },
     {
-      to: '/cost-guardrail',
-      label: 'Cost Guardrail',
+      to: '/cost-estimation',
+      label: 'Cost Estimation',
       icon: ShieldCheck,
       badge: 'Module 3'
     }

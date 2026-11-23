@@ -55,8 +55,8 @@ export default function FaultDiagnosis({
                     <p className="fault-symptom-text">{fault.symptomSummary}</p>
 
                     <div className="fault-cost-mini">
-                      <span className="cost-tag">Typical Bench Cost: <strong>${fault.minCost} – ${fault.maxCost}</strong></span>
-                      <span className="variance-tag">±${fault.costVariance} variance</span>
+                      <span className="cost-tag">Typical Bench Cost: <strong>৳{fault.minCost?.toLocaleString()} – ৳{fault.maxCost?.toLocaleString()}</strong></span>
+                      <span className="variance-tag">±৳{fault.costVariance?.toLocaleString()} variance</span>
                     </div>
 
                     {fault.assistantWarningNote && (

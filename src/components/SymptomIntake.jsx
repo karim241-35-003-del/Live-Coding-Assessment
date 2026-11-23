@@ -42,7 +42,7 @@ export default function SymptomIntake({
                 <div className="app-icon-wrapper">{app.icon}</div>
                 <div className="app-meta">
                   <span className="app-name">{app.name}</span>
-                  <span className="app-sub">Avg repl. ~${app.typicalReplacementValue} • {app.averageLifespanYears}y lifespan</span>
+                  <span className="app-sub">Avg repl. ~৳{app.typicalReplacementValue?.toLocaleString()} • {app.averageLifespanYears}y lifespan</span>
                 </div>
               </button>
             );

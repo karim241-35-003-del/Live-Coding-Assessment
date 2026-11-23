@@ -20,18 +20,19 @@ import {
 import {
   SHOP_METRICS,
   APPLIANCE_BENCHMARKS,
-  getCostDataForDiagnosis
+  getCostDataForDiagnosis,
+  CURRENCY
 } from '../data/mockDiagnostics';
 
 /**
  * =======================================================================
- * FINAL DELIVERABLE: Cost Guardrail & Quote Risk Engine (Module 3)
- * Developed by: Arik (Lead / Core Module 3)
+ * FINAL DELIVERABLE: Cost Estimation & Quote Risk Engine (Module 3)
+ * Jamal's Appliance Care — Configured in Bangladeshi Taka (৳ BDT)
  * -----------------------------------------------------------------------
  * Seamless Integration Interface:
  * - Accepts `diagnosis` object from Member 2's DiagnosisEngine
  * - Accepts `complaint` object from Member 1's Customer Intake
- * - Works both within the unified team workflow and standalone!
+ * - All calculations in Bangladeshi Taka (৳ BDT)
  * =======================================================================
  */
 export default function CostGuardrail({
@@ -44,58 +45,50 @@ export default function CostGuardrail({
   selectedAppliance,
   selectedComplaint,
   customNote,
-  applianceAge: propApplianceAge = 6
+  applianceAge: propApplianceAge = 5
 }) {
   // Resolve Appliance Name
   const applianceName = useMemo(() => {
-    if (diagnosis?.appliance) return diagnosis.appliance;
     if (complaint?.applianceType) return complaint.applianceType;
-    if (selectedAppliance) {
-      const lower = selectedAppliance.toLowerCase();
-      if (lower.includes('fridge') || lower.includes('ref')) return 'Refrigerator';
-      if (lower.includes('wash')) return 'Washing Machine';
-      if (lower.includes('micro')) return 'Microwave';
-    }
+    if (selectedAppliance) return selectedAppliance;
+    if (diagnosis?.appliance) return diagnosis.appliance;
     return 'Refrigerator';
-  }, [diagnosis, complaint, selectedAppliance]);
+  }, [complaint, selectedAppliance, diagnosis]);
 
-  // Resolve Diagnosis details
+  // Resolve Diagnosis Payload
   const diagnosisData = useMemo(() => {
-    return diagnosis || activeFault || {
-      likelyFault: "Evaporator Fan Motor or Compressor Relay Failure",
-      confidenceLevel: "High",
-      confidenceScore: 88,
-      isDangerous: false,
-      safetyWarning: null,
-      recommendation: "Inspect fan blades and check relay coil Ohmic resistance."
+    if (diagnosis) return diagnosis;
+    if (activeFault) return { likelyFault: activeFault.faultName || activeFault.name, ...activeFault };
+    return {
+      likelyFault: "Standard Component Diagnostic Inspection",
+      confidence: "88% (High)",
+      isDangerous: false
     };
   }, [diagnosis, activeFault]);
 
-  // Lookup cost benchmarks & guardrails for this exact diagnosis
-  const costProfile = useMemo(() => {
-    return getCostDataForDiagnosis(diagnosisData, applianceName);
-  }, [diagnosisData, applianceName]);
-
+  // Resolve Benchmark Specs for this appliance
   const applianceBenchmark = useMemo(() => {
     return APPLIANCE_BENCHMARKS[applianceName] || APPLIANCE_BENCHMARKS.Refrigerator;
   }, [applianceName]);
 
-  // Customer & Complaint Info
-  const initialCustomerName = complaint?.customerName || 'Jane Doe';
-  const initialCustomerPhone = complaint?.customerPhone || '(555) 019-2834';
-  const complaintDescription = complaint?.description || customNote || selectedComplaint || 'Standard diagnostic inspection';
+  // Lookup cost benchmarks & cost estimation for this exact diagnosis in Taka
+  const costProfile = useMemo(() => {
+    return getCostDataForDiagnosis(diagnosisData, applianceName);
+  }, [diagnosisData, applianceName]);
 
-  // Interactive Local State
-  const [localAge, setLocalAge] = useState(propApplianceAge);
-  const [quoteMode, setQuoteMode] = useState('safe'); // 'safe' | 'risky'
+  // Local State
+  const [localAge, setLocalAge] = useState(propApplianceAge || 5);
+  const [quoteMode, setQuoteMode] = useState('safe'); // 'safe' (Range) | 'risky' (Fixed Single Dollar Guess)
   const [fixedGuessAmount, setFixedGuessAmount] = useState(costProfile.minCost);
   const [customerAcknowledged, setCustomerAcknowledged] = useState(false);
   const [ticketGenerated, setTicketGenerated] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [customerName, setCustomerName] = useState(initialCustomerName);
-  const [customerPhone, setCustomerPhone] = useState(initialCustomerPhone);
 
-  // Sync state when props update
+  // Editable customer info
+  const [customerName, setCustomerName] = useState(complaint?.customerName || 'Tanvir Ahmed');
+  const [customerPhone, setCustomerPhone] = useState(complaint?.customerPhone || '01711223344');
+  const complaintDescription = complaint?.description || selectedComplaint?.complaintText || customNote || "Appliance experiencing performance issue.";
+
   useEffect(() => {
     if (complaint?.customerName) setCustomerName(complaint.customerName);
     if (complaint?.customerPhone) setCustomerPhone(complaint.customerPhone);
@@ -110,7 +103,7 @@ export default function CostGuardrail({
     setTicketGenerated(false);
   }, [costProfile]);
 
-  // Derived financial & guardrail metrics
+  // Derived financial & estimation metrics (in ৳ BDT)
   const minCost = costProfile.minCost;
   const maxCost = costProfile.maxCost;
   const variance = maxCost - minCost;
@@ -124,7 +117,6 @@ export default function CostGuardrail({
   }, [replacementValue, localAge, applianceBenchmark]);
 
   // BER (Beyond Economical Repair) evaluation:
-  // Repair exceeds 50% replacement value OR 65% depreciated residual value OR explicitly marked !isWorthRepairing
   const repairToNewRatio = replacementValue > 0 ? (maxCost / replacementValue) * 100 : 0;
   const repairToDepreciatedRatio = depreciatedValue > 0 ? (maxCost / depreciatedValue) * 100 : 0;
   const isBER = Boolean(
@@ -140,14 +132,14 @@ export default function CostGuardrail({
 
   // Unique Counter Ticket ID
   const ticketId = useMemo(() => {
-    return `JAR-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
+    return `JAC-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
   }, [ticketGenerated]);
 
   const handleCopySlip = () => {
     const slipText = `
 =========================================
   ${SHOP_METRICS.shopName.toUpperCase()}
-  PRE-INSPECTION COUNTER INTAKE RECEIPT
+  PRE-INSPECTION COST ESTIMATION RECEIPT (৳ BDT)
   Ticket ID: ${ticketId}
   Date: ${new Date().toLocaleDateString()}
 =========================================
@@ -160,13 +152,13 @@ DIAGNOSIS (Member 2 Triage Engine):
 - Confidence: ${diagnosisData.confidence || `${diagnosisData.confidenceScore || 85}% (${diagnosisData.confidenceLevel || 'High'})`}
 ${diagnosisData.isDangerous ? `* SAFETY HAZARD: ${diagnosisData.safetyWarning || 'Immediate inspection required'}\n` : ''}
 ESTIMATED BENCH REPAIR RANGE:
-$${minCost} – $${maxCost} (Pending bench physical teardown)
+৳ ${minCost.toLocaleString()} – ৳ ${maxCost.toLocaleString()} BDT (Pending physical bench teardown)
 
-LEGAL COUNTER GUARDRAIL CLAUSE:
+LEGAL COUNTER ESTIMATION CLAUSE:
 "${SHOP_METRICS.disclaimerText}"
 
 CUSTOMER ACKNOWLEDGMENT:
-[X] Customer verbally agreed to non-binding estimate range at counter.
+[X] Customer agreed to non-binding estimate range in Bangladeshi Taka.
 Intake Specialist: ${SHOP_METRICS.intakeOfficer}
 =========================================
     `.trim();
@@ -184,10 +176,10 @@ Intake Specialist: ${SHOP_METRICS.intakeOfficer}
   return (
     <div className="card guardrail-card">
       <div className="card-header">
-        <span className="step-tag primary-tag">Step 3 of 3 • Cost Guardrail</span>
-        <h2>Quote Guardrail &amp; Counter Intake Receipt</h2>
+        <span className="step-tag primary-tag">Step 3 of 3 • Cost Estimation</span>
+        <h2>Repair Cost Estimation &amp; Quote Risk Engine</h2>
         <p className="subtitle">
-          Prevents counter fixed-quote traps, flags beyond-economical-repair units on Day 1, and prints customer receipts.
+          Prevents counter fixed-quote traps, flags beyond-economical-repair units on Day 1, and prints customer receipts in Bangladeshi Taka (৳ BDT).
         </p>
       </div>
 
@@ -216,28 +208,28 @@ Intake Specialist: ${SHOP_METRICS.intakeOfficer}
             </div>
             <div className="alert-content-col">
               <div className="alert-heading-row">
-                <span className="badge badge-danger">CRITICAL GUARDRAIL ALERT</span>
+                <span className="badge badge-danger">CRITICAL BER ALERT</span>
                 <h3>NOT WORTH REPAIRING — Advise Customer on Day 1!</h3>
               </div>
               <p className="alert-description">
                 <strong>Why advise customer immediately?</strong> Estimated repair cost reaches{' '}
-                <strong>${maxCost}</strong> ({Math.round(repairToNewRatio)}% of a new replacement unit at ~${replacementValue}), 
-                and exceeds <strong>{Math.round(repairToDepreciatedRatio)}%</strong> of its depreciated residual value (~${depreciatedValue}) at{' '}
+                <strong>৳ {maxCost.toLocaleString()} BDT</strong> ({Math.round(repairToNewRatio)}% of a new replacement unit at ~৳ {replacementValue.toLocaleString()} BDT), 
+                and exceeds <strong>{Math.round(repairToDepreciatedRatio)}%</strong> of its depreciated residual value (~৳ {depreciatedValue.toLocaleString()} BDT) at{' '}
                 <strong>{localAge} years old</strong>. Sinking money into bench labor will leave the customer resentful.
               </p>
 
               <div className="ber-metric-cards">
                 <div className="ber-mini-card">
                   <span className="mini-label">Worst-Case Repair</span>
-                  <span className="mini-val text-danger">${maxCost}</span>
+                  <span className="mini-val text-danger">৳ {maxCost.toLocaleString()}</span>
                 </div>
                 <div className="ber-mini-card">
                   <span className="mini-label">Replacement Value</span>
-                  <span className="mini-val">${replacementValue}</span>
+                  <span className="mini-val">৳ {replacementValue.toLocaleString()}</span>
                 </div>
                 <div className="ber-mini-card">
                   <span className="mini-label">Depreciated Value</span>
-                  <span className="mini-val text-muted">${depreciatedValue}</span>
+                  <span className="mini-val text-muted">৳ {depreciatedValue.toLocaleString()}</span>
                 </div>
                 <div className="ber-mini-card">
                   <span className="mini-label">Shop Threshold</span>
@@ -251,8 +243,8 @@ Intake Specialist: ${SHOP_METRICS.intakeOfficer}
                 </div>
                 <p className="script-text">
                   "Mr./Mrs. Customer, because your {applianceName} is {localAge} years old and this repair 
-                  can reach up to <strong>${maxCost}</strong>, spending that much on an older machine rarely makes sense 
-                  when replacement units start around <strong>${replacementValue}</strong>. We strongly recommend recycling 
+                  can reach up to <strong>৳ {maxCost.toLocaleString()} BDT</strong>, spending that much on an older machine rarely makes sense 
+                  when replacement units start around <strong>৳ {replacementValue.toLocaleString()} BDT</strong>. We strongly recommend recycling 
                   or replacing rather than leaving it in the shop for costly bench teardown."
                 </p>
               </div>
@@ -269,8 +261,8 @@ Intake Specialist: ${SHOP_METRICS.intakeOfficer}
                 <h3>Repair is Economically Viable &amp; Approved for Intake</h3>
               </div>
               <p className="alert-description">
-                Estimated repair range (<strong>${minCost} – ${maxCost}</strong>) represents only 
-                <strong> {Math.round(repairToNewRatio)}%</strong> of replacement value (~${replacementValue}). 
+                Estimated repair range (<strong>৳ {minCost.toLocaleString()} – ৳ {maxCost.toLocaleString()} BDT</strong>) represents only 
+                <strong> {Math.round(repairToNewRatio)}%</strong> of replacement value (~৳ {replacementValue.toLocaleString()} BDT). 
                 At {localAge} years old, the unit has substantial service lifespan remaining.
               </p>
             </div>
@@ -282,30 +274,30 @@ Intake Specialist: ${SHOP_METRICS.intakeOfficer}
       <div className="section range-estimator-section">
         <div className="section-title-row">
           <label className="section-title">
-            <DollarSign size={18} /> Safe Estimated Cost Range &amp; Variance Meter
+            <span>৳</span> Safe Estimated Cost Range &amp; Variance Meter (BDT)
           </label>
           <span className="variance-pill">
-            Diagnosis Spread: <strong>+${variance} Variance</strong>
+            Diagnosis Spread: <strong>+৳ {variance.toLocaleString()} BDT</strong>
           </span>
         </div>
 
         <div className="range-display-container">
           <div className="range-box min-range">
             <span className="range-label">Best-Case / Minor Part</span>
-            <span className="range-amount">${minCost}</span>
+            <span className="range-amount">৳ {minCost.toLocaleString()}</span>
             <span className="range-sub">e.g. Cleanout / Relay / Switch</span>
           </div>
 
           <div className="range-arrow-zone">
             <div className="spread-line">
-              <span>BENCH SPREAD: ${minCost} to ${maxCost}</span>
+              <span>BENCH SPREAD: ৳ {minCost.toLocaleString()} to ৳ {maxCost.toLocaleString()}</span>
             </div>
             <ArrowRight size={24} className="spread-arrow" />
           </div>
 
           <div className="range-box max-range">
             <span className="range-label">Worst-Case / Core Assembly</span>
-            <span className="range-amount">${maxCost}</span>
+            <span className="range-amount">৳ {maxCost.toLocaleString()}</span>
             <span className="range-sub">e.g. Compressor / Tub / Magnetron</span>
           </div>
         </div>
@@ -314,20 +306,20 @@ Intake Specialist: ${SHOP_METRICS.intakeOfficer}
         <div className="variance-meter-block">
           <div className="meter-label-row">
             <span>Intake Quote Confidence Level</span>
-            <span className={variance > 100 ? 'text-danger fw-bold' : 'text-success fw-bold'}>
-              {variance > 120 ? 'HIGH VARIANCE RISK (Inspection Mandatory)' : variance > 60 ? 'MODERATE SPREAD' : 'TIGHT CONFIDENCE'}
+            <span className={variance > 5000 ? 'text-danger fw-bold' : 'text-success fw-bold'}>
+              {variance > 5000 ? 'HIGH VARIANCE RISK (Inspection Mandatory)' : variance > 2500 ? 'MODERATE SPREAD' : 'TIGHT CONFIDENCE'}
             </span>
           </div>
           <div className="meter-bar-track">
             <div
               className={`meter-bar-fill ${
-                variance > 120 ? 'fill-danger' : variance > 60 ? 'fill-amber' : 'fill-success'
+                variance > 5000 ? 'fill-danger' : variance > 2500 ? 'fill-amber' : 'fill-success'
               }`}
-              style={{ width: `${Math.min(100, Math.max(25, (variance / 220) * 100))}%` }}
+              style={{ width: `${Math.min(100, Math.max(25, (variance / 8000) * 100))}%` }}
             />
           </div>
           <p className="guardrail-rule-text">
-            <strong>The "Cost to Guessing" Problem:</strong> Never give a single dollar promise over the counter! 
+            <strong>The "Cost to Guessing" Problem:</strong> Never quote a single fixed price over the counter! 
             An external symptom cannot distinguish a minor sub-part from a catastrophic assembly failure until the technician opens the chassis.
           </p>
         </div>
@@ -366,8 +358,8 @@ Intake Specialist: ${SHOP_METRICS.intakeOfficer}
             </div>
             <h4>Guarding Counter Margins: Safe Range Strategy</h4>
             <p>
-              By quoting the customer the full range of <strong>${minCost} – ${maxCost}</strong> and taking the 
-              <strong> ${SHOP_METRICS.minDiagnosticInspectionFee} bench inspection deposit</strong>, the shop sets correct expectations 
+              By quoting the customer the full range of <strong>৳ {minCost.toLocaleString()} – ৳ {maxCost.toLocaleString()} BDT</strong> and taking the 
+              <strong> ৳ {SHOP_METRICS.minDiagnosticInspectionFee} inspection deposit</strong>, the shop sets correct expectations 
               and protects profit margins regardless of what the technician finds inside.
             </p>
             <div className="safe-perks-row">
@@ -389,27 +381,27 @@ Intake Specialist: ${SHOP_METRICS.intakeOfficer}
           <div className="simulator-risky-panel">
             <div className="panel-badge-row">
               <span className="badge badge-danger">PROFIT COLLAPSE HAZARD</span>
-              <span className="margin-loss-text">Potential Shop Deficit: -${simulatedShopLoss}</span>
+              <span className="margin-loss-text">Potential Shop Deficit: -৳ {simulatedShopLoss.toLocaleString()}</span>
             </div>
 
             <div className="interactive-slider-box">
               <div className="slider-label-row">
-                <label>Assistant Promises a Single Fixed Dollar Guess:</label>
-                <span className="simulated-guess-badge">${fixedGuessAmount}</span>
+                <label>Assistant Promises a Single Fixed Price Guess:</label>
+                <span className="simulated-guess-badge">৳ {Number(fixedGuessAmount).toLocaleString()} BDT</span>
               </div>
               <input
                 type="range"
                 min={minCost}
                 max={maxCost}
-                step="5"
+                step="100"
                 value={fixedGuessAmount}
                 onChange={(e) => setFixedGuessAmount(Number(e.target.value))}
                 className="guess-slider"
               />
               <div className="slider-markers">
-                <span>Optimistic Min: ${minCost}</span>
-                <span>Midpoint: ${Math.round((minCost + maxCost) / 2)}</span>
-                <span>Max Ceiling: ${maxCost}</span>
+                <span>Optimistic Min: ৳ {minCost.toLocaleString()}</span>
+                <span>Midpoint: ৳ {Math.round((minCost + maxCost) / 2).toLocaleString()}</span>
+                <span>Max Ceiling: ৳ {maxCost.toLocaleString()}</span>
               </div>
             </div>
 
@@ -417,18 +409,18 @@ Intake Specialist: ${SHOP_METRICS.intakeOfficer}
               <div className="loss-summary-row">
                 <div className="loss-col">
                   <span className="loss-sub">Promised to Customer:</span>
-                  <span className="loss-num text-info">${fixedGuessAmount}</span>
+                  <span className="loss-num text-info">৳ {Number(fixedGuessAmount).toLocaleString()}</span>
                 </div>
                 <div className="loss-math-symbol">-</div>
                 <div className="loss-col">
                   <span className="loss-sub">Actual High-Tier Cost:</span>
-                  <span className="loss-num text-danger">${maxCost}</span>
+                  <span className="loss-num text-danger">৳ {maxCost.toLocaleString()}</span>
                 </div>
                 <div className="loss-math-symbol">=</div>
                 <div className="loss-col">
                   <span className="loss-sub">Shop Unrecovered Loss:</span>
                   <span className="loss-num text-danger font-bold">
-                    ${simulatedShopLoss} ({lossPercentage}% deficit)
+                    ৳ {simulatedShopLoss.toLocaleString()} ({lossPercentage}% deficit)
                   </span>
                 </div>
               </div>
@@ -437,16 +429,16 @@ Intake Specialist: ${SHOP_METRICS.intakeOfficer}
                 <div className="loss-consequence-alert">
                   <TrendingDown size={18} className="text-danger" />
                   <div>
-                    <strong>Counter Backlash:</strong> Customer arrives to pick up the appliance, sees a bill for <strong>${maxCost}</strong>, 
-                    and claims: <em>"The person at the desk promised it would only cost ${fixedGuessAmount}!"</em>. 
-                    Jamal's shop either absorbs the <strong>${simulatedShopLoss} loss</strong> out of pocket or suffers a 1-star review.
+                    <strong>Counter Backlash:</strong> Customer arrives to pick up the appliance, sees a bill for <strong>৳ {maxCost.toLocaleString()} BDT</strong>, 
+                    and claims: <em>"The person at the desk promised it would only cost ৳ {Number(fixedGuessAmount).toLocaleString()}!"</em>. 
+                    Jamal's shop either absorbs the <strong>৳ {simulatedShopLoss.toLocaleString()} loss</strong> out of pocket or suffers a dispute.
                   </div>
                 </div>
               ) : (
                 <div className="loss-consequence-alert neutral">
                   <Info size={18} />
                   <div>
-                    You quoted the absolute maximum ceiling ($${maxCost}). While this protects margin, without quoting a range ($${minCost} – $${maxCost}), many customers will walk out without leaving the unit.
+                    You quoted the absolute maximum ceiling (৳ {maxCost.toLocaleString()}). While this protects margin, without quoting a range (৳ {minCost.toLocaleString()} – ৳ {maxCost.toLocaleString()}), many customers will walk out without leaving the unit.
                   </div>
                 </div>
               )}
@@ -455,7 +447,7 @@ Intake Specialist: ${SHOP_METRICS.intakeOfficer}
         )}
       </div>
 
-      {/* 4. NON-BINDING INTAKE RECEIPT & COUNTER GUARDRAIL */}
+      {/* 4. NON-BINDING INTAKE RECEIPT & COUNTER ESTIMATION */}
       <div className="section intake-ticket-section">
         <div className="ticket-section-header">
           <FileText size={18} />
@@ -469,16 +461,16 @@ Intake Specialist: ${SHOP_METRICS.intakeOfficer}
               type="text"
               value={customerName}
               onChange={(e) => setCustomerName(e.target.value)}
-              placeholder="e.g. Jane Doe"
+              placeholder="e.g. Tanvir Ahmed"
             />
           </div>
           <div className="input-field">
-            <label>Customer Phone / SMS:</label>
+            <label>Customer Phone / Mobile:</label>
             <input
               type="text"
               value={customerPhone}
               onChange={(e) => setCustomerPhone(e.target.value)}
-              placeholder="e.g. (555) 019-2834"
+              placeholder="e.g. 017XXXXXXXX"
             />
           </div>
         </div>
@@ -493,7 +485,7 @@ Intake Specialist: ${SHOP_METRICS.intakeOfficer}
             />
             <span className="checkbox-text">
               <strong>Mandatory Counter Check:</strong> Customer verbally acknowledged that 
-              <strong> ${minCost} – ${maxCost}</strong> is a preliminary diagnostic range, and final repair cost will only be established after bench teardown.
+              <strong> ৳ {minCost.toLocaleString()} – ৳ {maxCost.toLocaleString()} BDT</strong> is a preliminary diagnostic range, and final repair cost will only be established after physical bench teardown.
             </span>
           </label>
         </div>
@@ -557,17 +549,17 @@ Intake Specialist: ${SHOP_METRICS.intakeOfficer}
               </div>
               <div className="rd-row">
                 <span className="rd-label">Estimated Diagnostic Range:</span>
-                <span className="rd-price">${minCost} – ${maxCost}</span>
+                <span className="rd-price">৳ {minCost.toLocaleString()} – ৳ {maxCost.toLocaleString()} BDT</span>
               </div>
               <div className="rd-row">
                 <span className="rd-label">Bench Inspection Deposit:</span>
-                <span className="rd-val">${SHOP_METRICS.minDiagnosticInspectionFee} (Credited toward approved repair)</span>
+                <span className="rd-val">৳ {SHOP_METRICS.minDiagnosticInspectionFee} BDT (Credited toward approved repair)</span>
               </div>
             </div>
 
             <div className="receipt-disclaimer-box">
               <div className="disclaimer-header">
-                <ShieldAlert size={14} /> EXPLICIT COUNTER GUARDRAIL CLAUSE:
+                <ShieldAlert size={14} /> EXPLICIT COUNTER ESTIMATION CLAUSE:
               </div>
               <p className="disclaimer-text">
                 "{SHOP_METRICS.disclaimerText}"
@@ -600,3 +592,6 @@ Intake Specialist: ${SHOP_METRICS.intakeOfficer}
     </div>
   );
 }
+
+// Aliases for compatibility
+export { CostGuardrail as CostEstimation };
