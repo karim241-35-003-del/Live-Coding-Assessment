@@ -13,24 +13,10 @@ import {
   TrendingDown,
   Info,
   Sliders,
-  Scale,
-  Wrench,
-  CheckSquare
+  Scale
 } from 'lucide-react';
 import { SHOP_METRICS, APPLIANCE_TYPES, MOCK_FAULTS } from '../data/mockDiagnostics';
 
-/**
- * =======================================================================
- * MEMBER 3 CORE MODULE: Cost to Guessing & Quote Guardrail System
- * Assigned To: Arik (Lead / Core Focus)
- * -----------------------------------------------------------------------
- * Core Deliverables:
- * 1. "Cost to Guessing" Risk Meter & Safe Range Estimator ($min – $max)
- * 2. Assistant Guess Simulator & Margin Risk Deficit Calculator
- * 3. Day-1 "Repair vs. Replace" (BER) Threshold Alert Banner & Counter Script
- * 4. Non-Binding Counter Intake Receipt with Mandatory Acknowledgment Check
- * =======================================================================
- */
 export default function CostGuardrail({
   activeFault: propActiveFault,
   detectedFaults = [],
@@ -40,14 +26,12 @@ export default function CostGuardrail({
   customNote = '',
   applianceAge: propApplianceAge = 6
 }) {
-  // Fallback to primary mock fault if parent didn't supply one, ensuring 100% standalone viability
   const defaultFault = useMemo(() => {
     return MOCK_FAULTS.find((f) => f.appliance === selectedAppliance) || MOCK_FAULTS[0];
   }, [selectedAppliance]);
 
   const activeFault = propActiveFault || defaultFault;
 
-  // Local state for interactive features
   const [localAge, setLocalAge] = useState(propApplianceAge);
   const [quoteMode, setQuoteMode] = useState('safe'); // 'safe' | 'risky'
   const [fixedGuessAmount, setFixedGuessAmount] = useState(activeFault ? activeFault.minCost : 65);
@@ -55,16 +39,14 @@ export default function CostGuardrail({
   const [ticketGenerated, setTicketGenerated] = useState(false);
   const [copied, setCopied] = useState(false);
   const [customerName, setCustomerName] = useState('Jane Doe');
-  const [customerPhone, setCustomerPhone] = useState('555-0199');
+  const [customerPhone, setCustomerPhone] = useState('(555) 019-2834');
 
-  // Keep localAge in sync if prop changes
   useEffect(() => {
     if (propApplianceAge !== undefined) {
       setLocalAge(propApplianceAge);
     }
   }, [propApplianceAge]);
 
-  // Keep fixed guess synced when fault changes
   useEffect(() => {
     if (activeFault) {
       setFixedGuessAmount(activeFault.minCost);
@@ -72,7 +54,6 @@ export default function CostGuardrail({
     }
   }, [activeFault]);
 
-  // Appliance metadata lookup
   const applianceMeta = useMemo(() => {
     return APPLIANCE_TYPES.find((a) => a.id === (activeFault?.appliance || selectedAppliance)) || {
       name: 'Household Appliance',
@@ -81,22 +62,17 @@ export default function CostGuardrail({
     };
   }, [activeFault, selectedAppliance]);
 
-  // Costs & Variance calculations
   const minCost = activeFault ? activeFault.minCost : 50;
   const maxCost = activeFault ? activeFault.maxCost : 250;
   const variance = maxCost - minCost;
   const replacementValue = activeFault?.replacementValue || applianceMeta.typicalReplacementValue || 600;
 
-  // Depreciated Residual Value calculation based on appliance age
   const depreciatedValue = useMemo(() => {
     const lifespan = applianceMeta.averageLifespanYears || 10;
     const factor = Math.max(0.15, 1 - (localAge / lifespan) * 0.75);
     return Math.round(replacementValue * factor);
   }, [replacementValue, localAge, applianceMeta]);
 
-  // BER (Beyond Economical Repair) metrics:
-  // Triggered if maxCost >= 50% replacement value, or repair exceeds 65% depreciated value,
-  // or explicitly flagged isWorthRepairing === false, or appliance >= 10 yrs old on heavy repair.
   const repairToNewRatio = replacementValue > 0 ? (maxCost / replacementValue) * 100 : 0;
   const repairToDepreciatedRatio = depreciatedValue > 0 ? (maxCost / depreciatedValue) * 100 : 0;
   const isBER = Boolean(
@@ -108,12 +84,9 @@ export default function CostGuardrail({
     )
   );
 
-  // Assistant Guess Simulator Deficit Math:
-  // If assistant promised $fixedGuessAmount, but actual job required $maxCost:
   const simulatedShopLoss = Math.max(0, maxCost - Number(fixedGuessAmount || 0));
   const lossPercentage = maxCost > 0 ? Math.round((simulatedShopLoss / maxCost) * 100) : 0;
 
-  // Unique Counter Ticket ID
   const ticketId = useMemo(() => {
     return `JAR-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
   }, [ticketGenerated]);
@@ -143,7 +116,7 @@ LEGAL COUNTER GUARDRAIL CLAUSE:
 
 CUSTOMER ACKNOWLEDGMENT:
 [X] Customer verbally agreed to non-binding estimate range at counter.
-Intake Officer: ${SHOP_METRICS.counterLead}
+Intake Specialist: ${SHOP_METRICS.intakeOfficer}
 =========================================
     `.trim();
 
@@ -158,16 +131,16 @@ Intake Officer: ${SHOP_METRICS.counterLead}
   };
 
   return (
-    <div className="card member-card guardrail-card">
+    <div className="card guardrail-card">
       <div className="card-header">
-        <div className="badge member-badge member-badge-3">Member 3 (Arik) — Core Module</div>
-        <h2>Step 3: Cost to Guessing & Quote Guardrail</h2>
+        <span className="step-tag primary-tag">Step 3 of 3</span>
+        <h2>Cost Guardrail & Counter Intake Receipt</h2>
         <p className="subtitle">
-          Core Module by Arik: Prevents counter fixed-quote traps, enforces non-binding ranges, flags BER units on Day 1, and generates intake receipts.
+          Prevents counter fixed-quote traps, flags beyond-economical-repair units on Day 1, and prints customer receipts.
         </p>
       </div>
 
-      {/* ---------------- 1. DAY-1 REPAIR VS. REPLACE (BER) ALERT BANNER ---------------- */}
+      {/* 1. DAY-1 REPAIR VS. REPLACE (BER) ALERT BANNER */}
       <div className="section ber-section">
         {isBER ? (
           <div className="alert-box alert-danger">
@@ -238,11 +211,11 @@ Intake Officer: ${SHOP_METRICS.counterLead}
         )}
       </div>
 
-      {/* ---------------- 2. COST RANGE ESTIMATOR & VARIANCE RISK BAR ---------------- */}
+      {/* 2. COST RANGE ESTIMATOR & VARIANCE RISK BAR */}
       <div className="section range-estimator-section">
         <div className="section-title-row">
           <label className="section-title">
-            <DollarSign size={18} /> Safe Estimated Cost Range & Cost-to-Guessing Meter
+            <DollarSign size={18} /> Safe Estimated Cost Range & Variance Meter
           </label>
           <span className="variance-pill">
             Diagnosis Spread: <strong>+${variance} Variance</strong>
@@ -270,7 +243,7 @@ Intake Officer: ${SHOP_METRICS.counterLead}
           </div>
         </div>
 
-        {/* Visual Variance & Confidence Meter */}
+        {/* Visual Variance Meter */}
         <div className="variance-meter-block">
           <div className="meter-label-row">
             <span>Intake Quote Confidence Level</span>
@@ -288,12 +261,12 @@ Intake Officer: ${SHOP_METRICS.counterLead}
           </div>
           <p className="guardrail-rule-text">
             <strong>The "Cost to Guessing" Problem:</strong> Never give a single dollar promise over the counter! 
-            An external symptom (like humming or smoke) cannot distinguish a $45 drain obstruction from a $380 burnt compressor until the tech opens the chassis.
+            An external symptom cannot distinguish a $45 drain obstruction from a $380 burnt compressor until the technician opens the chassis.
           </p>
         </div>
       </div>
 
-      {/* ---------------- 3. INTERACTIVE ASSISTANT GUESS SIMULATOR ---------------- */}
+      {/* 3. INTERACTIVE ASSISTANT GUESS SIMULATOR */}
       <div className="section simulator-section">
         <div className="simulator-header">
           <div className="sim-title">
@@ -397,7 +370,7 @@ Intake Officer: ${SHOP_METRICS.counterLead}
                 <div className="loss-consequence-alert">
                   <TrendingDown size={18} className="text-danger" />
                   <div>
-                    <strong>Counter Backlash:</strong> Customer comes to pick up the appliance, sees a bill for <strong>${maxCost}</strong>, 
+                    <strong>Counter Backlash:</strong> Customer arrives to pick up the appliance, sees a bill for <strong>${maxCost}</strong>, 
                     and claims: <em>"The person at the desk promised it would only cost ${fixedGuessAmount}!"</em>. 
                     Jamal's shop either absorbs the <strong>${simulatedShopLoss} loss</strong> out of pocket or suffers a 1-star review.
                   </div>
@@ -415,11 +388,11 @@ Intake Officer: ${SHOP_METRICS.counterLead}
         )}
       </div>
 
-      {/* ---------------- 4. NON-BINDING INTAKE RECEIPT & COUNTER GUARDRAIL ---------------- */}
+      {/* 4. NON-BINDING INTAKE RECEIPT & COUNTER GUARDRAIL */}
       <div className="section intake-ticket-section">
         <div className="ticket-section-header">
           <FileText size={18} />
-          <h3 className="section-title">Step 4: Non-Binding Counter Intake Receipt</h3>
+          <h3 className="section-title">Non-Binding Counter Intake Receipt</h3>
         </div>
 
         <div className="customer-info-inputs">
@@ -539,7 +512,7 @@ Intake Officer: ${SHOP_METRICS.counterLead}
               </div>
               <div className="sig-block">
                 <div className="sig-line" />
-                <span>Intake Officer: {SHOP_METRICS.counterLead}</span>
+                <span>Service Specialist: {SHOP_METRICS.intakeOfficer}</span>
               </div>
             </div>
 

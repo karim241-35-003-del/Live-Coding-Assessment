@@ -1,29 +1,29 @@
-// Shared Mock Data for Jamal's Appliance Repair — Intake & Quote Guardrail System
+// Mock Data for Jamal's Appliance Repair — Intake & Quote Guardrail System
 
 export const APPLIANCE_TYPES = [
   {
     id: 'fridge',
     name: 'Refrigerator / Freezer',
-    icon: 'Refrigerator',
+    icon: '🧊',
     typicalReplacementValue: 750,
     averageLifespanYears: 12,
-    description: 'Compressor, defrost, sealed system, and thermostat triage'
+    description: 'Compressor, defrost, sealed system & thermostat triage'
   },
   {
     id: 'washing_machine',
     name: 'Washing Machine',
-    icon: 'WashingMachine',
+    icon: '🧺',
     typicalReplacementValue: 600,
     averageLifespanYears: 10,
-    description: 'Drum bearings, drive belt, drain pump, and suspension triage'
+    description: 'Drum bearings, drive belt, drain pump & suspension triage'
   },
   {
     id: 'microwave',
     name: 'Microwave Oven',
-    icon: 'Zap',
+    icon: '⚡',
     typicalReplacementValue: 180,
     averageLifespanYears: 7,
-    description: 'Magnetron, high voltage diode, waveguide, and door interlock triage'
+    description: 'Magnetron, high voltage diode, waveguide & door interlocks'
   }
 ];
 
@@ -31,12 +31,12 @@ export const VAGUE_COMPLAINTS = [
   {
     id: 'noise',
     label: 'Making a strange / loud noise',
-    description: 'Customer reports grinding, clicking, humming, or buzzing sounds'
+    description: 'Grinding, clicking, humming, or buzzing sounds'
   },
   {
     id: 'dead',
     label: 'Working yesterday, now completely dead / nothing',
-    description: 'Unit does not power on, display is off, or trips circuit breaker'
+    description: 'Unit will not power on, display is off, or trips breaker'
   },
   {
     id: 'water_leak',
@@ -46,7 +46,7 @@ export const VAGUE_COMPLAINTS = [
   {
     id: 'burning_smell',
     label: 'Smells like something burning / smoke',
-    description: 'Electrical burning odor, ozone smell, or scorched plastic'
+    description: 'Electrical burning odor, ozone smell, or friction burn'
   }
 ];
 
@@ -59,7 +59,7 @@ export const FOLLOW_UP_QUESTIONS = {
     ],
     dead: [
       { id: 'q_light_on', text: 'Does the interior light turn on when you open the door?', weight: 'control_board' },
-      { id: 'q_outlet_tested', text: 'Has the outlet been tested with a phone charger or lamp?', weight: 'power_cord' }
+      { id: 'q_outlet_tested', text: 'Has the wall outlet been verified with another device?', weight: 'power_cord' }
     ],
     water_leak: [
       { id: 'q_inside_drawers', text: 'Is water pooling inside under the crisper vegetable drawers?', weight: 'drain_tube' },
@@ -95,15 +95,15 @@ export const FOLLOW_UP_QUESTIONS = {
       { id: 'q_turntable', text: 'Does the noise pulse in rhythm with the glass turntable rotating?', weight: 'roller_ring' }
     ],
     dead: [
-      { id: 'q_door_slam', text: 'Did the microwave shut off immediately after opening or slamming the door?', weight: 'door_fuse' },
+      { id: 'q_door_slam', text: 'Did the microwave shut off immediately after opening or closing the door?', weight: 'door_fuse' },
       { id: 'q_tripped_breaker', text: 'Did it trip your kitchen counter circuit breaker?', weight: 'interlock_switches' }
     ],
     water_leak: [
-      { id: 'q_steam_vent', text: 'Is condensation dripping from the exhaust vents after cooking soup?', weight: 'condensation' }
+      { id: 'q_steam_vent', text: 'Is heavy condensation dripping from the exhaust vents?', weight: 'condensation' }
     ],
     burning_smell: [
       { id: 'q_sparks_visible', text: 'Did you see flashes of lightning, sparks, or scorch marks inside?', weight: 'magnetron_waveguide' },
-      { id: 'q_waveguide_cover', text: 'Is the mica cardboard cover inside charred or greasy?', weight: 'waveguide_cover' }
+      { id: 'q_waveguide_cover', text: 'Is the mica cover inside cavity charred or greasy?', weight: 'waveguide_cover' }
     ]
   }
 };
@@ -281,7 +281,8 @@ export const MOCK_FAULTS = [
 export const SHOP_METRICS = {
   shopName: "Jamal's Appliance Repair",
   subtitle: "Intake & Quote Guardrail System",
-  counterLead: "Arik (Intake Desk Lead)",
+  counterTerminal: "Terminal 01 — Counter Desk",
+  intakeOfficer: "Service Specialist #104",
   hourlyBenchRate: 65,
   minDiagnosticInspectionFee: 35,
   disclaimerText: "This is an initial diagnostic estimate range, not a final fixed quote. Final repair cost will be confirmed after bench inspection before work begins.",
